@@ -158,6 +158,10 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         except ValueError:
             self.readDelayTxtCtrl.SetValue("{:d}".format(self.readDelay))
 
+    def onClearConsole(self, event):
+    	""" Clear the output/input console """
+    	self.logFileTextControl.Clear()
+
     #============================
     # OTHER FUNCTIONS
     #============================
@@ -257,6 +261,9 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             if self.checkConnection():
                 # send the message
                 self.arduinoSerialConnection.write(msg)
+                # move to the end of the text control in case the user has clicked somewhere
+                # since the last message
+                self.logFileTextControl.MoveEnd()
                 # add it to the port comms logger
                 self.logFileTextControl.WriteText(msg+"\n")
                 # scroll to the end
@@ -288,6 +295,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                         lines = self.arduinoOutputBuffer.rpartition("\n")
                         if lines[0]:
                             for line in lines[0].split("\n"):
+                            	# go to the end of the console in case the user has moved the cursor
+                            	self.logFileTextControl.MoveEnd()
                                 # log the line
                                 self.logFileTextControl.WriteText(line+"\n")
 
