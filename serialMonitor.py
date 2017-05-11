@@ -128,7 +128,6 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
     def onUpdatePorts(self, event):
         """ call the update ports method - need a wrapper to be able to call it during initialisation """
-        print "Update ports"
         self.updatePorts()
         self.Layout() # makes sure the choice dropdown is big enough to fit all the choice options
 
