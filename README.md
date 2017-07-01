@@ -23,4 +23,6 @@ To install on Ubuntu Linux:
 
 Tested on Ubuntu 14.04 with Pyton 2.7.6
 
+## Example
+
 ![Alt text](screenshot.png?raw=true "Main window of the program")
