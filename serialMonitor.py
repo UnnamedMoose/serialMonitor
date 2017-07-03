@@ -120,16 +120,21 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
         # if None is chosen then close the current port
         else:
-            if self.portOpen:
-                self.arduinoSerialConnection.close()
-            self.arduinoSerialConnection = 0
-            self.portOpen = False
-            self.currentPort = 'None'
+            self.disconnect()
+            # if self.portOpen:
+            #     self.arduinoSerialConnection.close()
+            # self.arduinoSerialConnection = 0
+            # self.portOpen = False
+            # self.currentPort = 'None'
 
     def onUpdatePorts(self, event):
         """ call the update ports method - need a wrapper to be able to call it during initialisation """
         self.updatePorts()
         self.Layout() # makes sure the choice dropdown is big enough to fit all the choice options
+
+    def onDisconnect(self, event):
+        """ Call the disconnect method """
+        self.disconnect()
 
     def onParseOutputs(self, event):
         """ Get information from the Arduino, if there is anything available """
@@ -219,6 +224,15 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         else:
             self.portChoice.SetSelection(0)
             self.currentPort = 'None'
+
+    def disconnect(self):
+        """ Drop the current connection with the Arduino """
+        if self.portOpen:
+            self.arduinoSerialConnection.close()
+        self.arduinoSerialConnection = 0
+        self.portOpen = False
+        self.portChoice.SetSelection(0)
+        self.currentPort = 'None'
 
     def checkConnection(self):
         """ Checks if the Arduino is still connected. """

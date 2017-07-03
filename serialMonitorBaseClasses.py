@@ -43,6 +43,9 @@ class mainFrame ( wx.Frame ):
 		self.updatePortsButton = wx.Button( self.m_panel1, wx.ID_ANY, u"Update ports", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.updatePortsButton, 0, wx.ALL|wx.EXPAND, 5 )
 		
+		self.disconnectButton = wx.Button( self.m_panel1, wx.ID_ANY, u"Disconnect", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer2.Add( self.disconnectButton, 0, wx.ALL|wx.EXPAND, 5 )
+		
 		self.baudRateText = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Baud rate:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.baudRateText.Wrap( -1 )
 		bSizer2.Add( self.baudRateText, 0, wx.ALL|wx.EXPAND, 5 )
@@ -97,6 +100,7 @@ class mainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.onClose )
 		self.portChoice.Bind( wx.EVT_CHOICE, self.onChoseSerialPort )
 		self.updatePortsButton.Bind( wx.EVT_BUTTON, self.onUpdatePorts )
+		self.disconnectButton.Bind( wx.EVT_BUTTON, self.onDisconnect )
 		self.baudRateTxtCtrl.Bind( wx.EVT_KILL_FOCUS, self.onUpdateBaudRate )
 		self.baudRateTxtCtrl.Bind( wx.EVT_TEXT_ENTER, self.onUpdateBaudRate )
 		self.readDelayTxtCtrl.Bind( wx.EVT_KILL_FOCUS, self.onUpdateReadDelay )
@@ -117,6 +121,9 @@ class mainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def onUpdatePorts( self, event ):
+		event.Skip()
+	
+	def onDisconnect( self, event ):
 		event.Skip()
 	
 	def onUpdateBaudRate( self, event ):
