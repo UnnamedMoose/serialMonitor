@@ -258,8 +258,9 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         # make sure the connection has not been broken
         if self.portOpen:
             if self.checkConnection():
-                # send the message
-                self.arduinoSerialConnection.write(msg)
+                # send the message; need to pass as a regular string to avoid compatibility
+                # issues with new wxWidgets which use unicode string formatting
+                self.arduinoSerialConnection.write(r'{}'.format(msg))
                 # move to the end of the text control in case the user has clicked somewhere
                 # since the last message
                 self.logFileTextControl.MoveEnd()
