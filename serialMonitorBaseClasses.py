@@ -43,6 +43,9 @@ class mainFrame ( wx.Frame ):
 		self.updatePortsButton = wx.Button( self.m_panel1, wx.ID_ANY, u"Update ports", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.updatePortsButton, 0, wx.ALL|wx.EXPAND, 5 )
 		
+		self.disconnectButton = wx.Button( self.m_panel1, wx.ID_ANY, u"Disconnect", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer2.Add( self.disconnectButton, 0, wx.ALL|wx.EXPAND, 5 )
+		
 		self.baudRateText = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Baud rate:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.baudRateText.Wrap( -1 )
 		bSizer2.Add( self.baudRateText, 0, wx.ALL|wx.EXPAND, 5 )
@@ -56,6 +59,9 @@ class mainFrame ( wx.Frame ):
 		
 		self.readDelayTxtCtrl = wx.TextCtrl( self.m_panel1, wx.ID_ANY, u"1000", wx.DefaultPosition, wx.DefaultSize, wx.TE_PROCESS_ENTER )
 		bSizer2.Add( self.readDelayTxtCtrl, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.clearButton = wx.Button( self.m_panel1, wx.ID_ANY, u"Clear console", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer2.Add( self.clearButton, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		
 		bSizer2.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
@@ -94,10 +100,12 @@ class mainFrame ( wx.Frame ):
 		self.Bind( wx.EVT_CLOSE, self.onClose )
 		self.portChoice.Bind( wx.EVT_CHOICE, self.onChoseSerialPort )
 		self.updatePortsButton.Bind( wx.EVT_BUTTON, self.onUpdatePorts )
+		self.disconnectButton.Bind( wx.EVT_BUTTON, self.onDisconnect )
 		self.baudRateTxtCtrl.Bind( wx.EVT_KILL_FOCUS, self.onUpdateBaudRate )
 		self.baudRateTxtCtrl.Bind( wx.EVT_TEXT_ENTER, self.onUpdateBaudRate )
 		self.readDelayTxtCtrl.Bind( wx.EVT_KILL_FOCUS, self.onUpdateReadDelay )
 		self.readDelayTxtCtrl.Bind( wx.EVT_TEXT_ENTER, self.onUpdateReadDelay )
+		self.clearButton.Bind( wx.EVT_BUTTON, self.onClearConsole )
 		self.inputTextControl.Bind( wx.EVT_TEXT_ENTER, self.onSendInput )
 		self.Bind( wx.EVT_TIMER, self.onParseOutputs, id=parseOutputsTimerID )
 	
@@ -115,6 +123,9 @@ class mainFrame ( wx.Frame ):
 	def onUpdatePorts( self, event ):
 		event.Skip()
 	
+	def onDisconnect( self, event ):
+		event.Skip()
+	
 	def onUpdateBaudRate( self, event ):
 		event.Skip()
 	
@@ -122,6 +133,9 @@ class mainFrame ( wx.Frame ):
 	def onUpdateReadDelay( self, event ):
 		event.Skip()
 	
+	
+	def onClearConsole( self, event ):
+		event.Skip()
 	
 	def onSendInput( self, event ):
 		event.Skip()
