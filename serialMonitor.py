@@ -72,7 +72,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.parseOutputsTimer.Start(int(self.readDelay))
 
         # update the ports available at start-up
-        self.updatePorts()
+        self.updatePorts(suppressWarn=True)
         self.portChoice.SetSelection(0)
 
         self.Layout() # Make sure everything is nicely located in the sizers on startup.
@@ -197,12 +197,20 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
 		return ports
 
-    def updatePorts(self):
+    def updatePorts(self,suppressWarn=False):
         """ Checks the list of open serial ports and updates the internal list
-        and the options shown in the dropdown selection menu. """
+        and the options shown in the dropdown selection menu.
+        
+        Args
+        -----
+        suppressWarn (bool): whether to suppress showing a wx.MessageBox with
+        	a warning if no active ports are found.
+    	"""
 
         # check what ports are currently open
         ports = self.getActivePorts()
+        if len(ports)<=0 and not suppressWarn:
+            wx.MessageBox('Check connection and port permissions.','Found no active ports!',wx.ICON_ERROR,None)
 
         # save current selection
         currentSelection = self.portChoice.GetStringSelection()
