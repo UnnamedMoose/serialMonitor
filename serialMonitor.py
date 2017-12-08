@@ -294,7 +294,6 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     def parseOutputs(self):
         """ Check the serial connection for any inbound information and read it if it's
         available. Pass it to the respective handlers accordingly  """
-
         if self.portOpen:
             if self.checkConnection():
                 try:
@@ -304,17 +303,16 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
                     # if incoming bytes are waiting to be read from the serial input buffer
                     if (self.arduinoSerialConnection.inWaiting()>0):
-                        # read the bytes and convert from binary array to ASCII
-                        dataStr = self.arduinoSerialConnection.read(
-                            self.arduinoSerialConnection.inWaiting() ).decode('ascii')
-
-                        # pass to the buffer
-                        self.arduinoOutputBuffer += dataStr
+                        # Read the bytes.
+                        dataStr=self.arduinoSerialConnection.read(
+                            self.arduinoSerialConnection.inWaiting() )
+                        # Pass to the buffer and convert from binary array to ASCII.
+                        self.arduinoOutputBuffer += dataStr.decode('ascii')
 
                         # extract any full lines and log them - there can be more than
                         # one, depending on the loop frequencies on either side of the
                         # serial conneciton
-                        lines = self.arduinoOutputBuffer.rpartition("\n")
+                        lines = self.arduinoOutputBuffer.rpartition("\n")#TODO this should be optional.
                         if lines[0]:
                             for line in lines[0].split("\n"):
                             	# go to the end of the console in case the user has moved the cursor
@@ -331,10 +329,15 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                             # only leave the last chunk without any EOL chars in the buffer
                             self.arduinoOutputBuffer = lines[2]
 
-                except UnicodeDecodeError:
-                    # sometimes rubbish gets fed to the serial port upon initialisation,
-                    # just let it go
-                    pass
+                except UnicodeDecodeError as uderr:
+                    # Sometimes rubbish gets fed to the serial port.
+                    # Print the error in the console to let the user know something's not right.
+                    self.logFileTextControl.MoveEnd()
+                    self.logFileTextControl.BeginTextColour((255,0,0))
+                    self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
+                    self.logFileTextControl.EndTextColour()
+                    #TODO log the error and the line that caused it.
+                    print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
