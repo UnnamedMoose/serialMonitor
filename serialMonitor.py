@@ -296,48 +296,57 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         available. Pass it to the respective handlers accordingly  """
         if self.portOpen:
             if self.checkConnection():
-                try:
-                    # use a non-blocking approach to read the data - this is generally
-                    # much less disruptive to the overall program flow than relying
-                    # on Serial.readline()
+                # use a non-blocking approach to read the data - this is generally
+                # much less disruptive to the overall program flow than relying
+                # on Serial.readline()
 
-                    # if incoming bytes are waiting to be read from the serial input buffer
-                    if (self.arduinoSerialConnection.inWaiting()>0):
-                        # Read the bytes.
-                        dataStr=self.arduinoSerialConnection.read(
-                            self.arduinoSerialConnection.inWaiting() )
-                        # Pass to the buffer and convert from binary array to ASCII.
-                        self.arduinoOutputBuffer += dataStr.decode('ascii')
+                # if incoming bytes are waiting to be read from the serial input buffer
+                if (self.arduinoSerialConnection.inWaiting()>0):
+                    # Read the bytes.
+                    dataStr=self.arduinoSerialConnection.read(
+                        self.arduinoSerialConnection.inWaiting() )
+                    # Pass to the buffer and convert from binary array to ASCII,
+                    # unless the user desires to see the raw, undecoded output.
+                    # In such case, don't expect end of line characters either.
+                    if not self.rawOutputCheckbox.GetValue(): # No raw output.
+                    	try:#TODO test if this works as it used to.
+			                self.arduinoOutputBuffer += dataStr.decode('ascii')
 
-                        # extract any full lines and log them - there can be more than
-                        # one, depending on the loop frequencies on either side of the
-                        # serial conneciton
-                        lines = self.arduinoOutputBuffer.rpartition("\n")#TODO this should be optional.
-                        if lines[0]:
-                            for line in lines[0].split("\n"):
-                            	# go to the end of the console in case the user has moved the cursor
-                            	self.logFileTextControl.MoveEnd()
-                                # log the line
-                                self.logFileTextControl.WriteText(line+"\n")
+			                # extract any full lines and log them - there can be more than
+			                # one, depending on the loop frequencies on either side of the
+			                # serial conneciton
+			                lines = self.arduinoOutputBuffer.rpartition("\n")
+			                if lines[0]:
+			                    for line in lines[0].split("\n"):
+			                    	# go to the end of the console in case the user has moved the cursor
+			                    	self.logFileTextControl.MoveEnd()
+			                        # log the line
+			                        self.logFileTextControl.WriteText(line+"\n")
 
-                                # TODO TODO TODO
-                                # this is where one can pass the outputs to where they need to go
+			                        # TODO TODO TODO
+			                        # this is where one can pass the outputs to where they need to go
 
-                            # scroll the output txtControl to the bottom
-                            self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+			                    # scroll the output txtControl to the bottom
+			                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
-                            # only leave the last chunk without any EOL chars in the buffer
-                            self.arduinoOutputBuffer = lines[2]
+			                    # only leave the last chunk without any EOL chars in the buffer
+			                    self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
+                    	except UnicodeDecodeError as uderr:
+					        # Sometimes rubbish gets fed to the serial port.
+					        # Print the error in the console to let the user know something's not right.
+					        self.logFileTextControl.MoveEnd()
+					        self.logFileTextControl.BeginTextColour((255,0,0))
+					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
+					        self.logFileTextControl.EndTextColour()
+					        #TODO log the error and the line that caused it.
+					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
-                except UnicodeDecodeError as uderr:
-                    # Sometimes rubbish gets fed to the serial port.
-                    # Print the error in the console to let the user know something's not right.
-                    self.logFileTextControl.MoveEnd()
-                    self.logFileTextControl.BeginTextColour((255,0,0))
-                    self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
-                    self.logFileTextControl.EndTextColour()
-                    #TODO log the error and the line that caused it.
-                    print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
+                    else: # User wants raw ouptut.
+                    	# Just print whatever came out of serial port.
+	                    self.logFileTextControl.MoveEnd()
+	                    self.logFileTextControl.WriteText(dataStr)
+	                    #TODO I've got a feeling that wx will try to cast to unicode, which might cause uderr.
+	                    #TODO Test this. raw output shouldn't cause raw errors, make it so.
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
