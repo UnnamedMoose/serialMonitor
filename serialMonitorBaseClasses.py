@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*- 
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Jun 17 2015)
+## Python code generated with wxFormBuilder (version Feb 16 2016)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO "NOT" EDIT THIS FILE!
@@ -62,6 +62,9 @@ class mainFrame ( wx.Frame ):
 		
 		self.clearButton = wx.Button( self.m_panel1, wx.ID_ANY, u"Clear console", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.clearButton, 0, wx.ALL|wx.EXPAND, 5 )
+		
+		self.rawOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Raw output", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer2.Add( self.rawOutputCheckbox, 0, wx.ALL, 5 )
 		
 		
 		bSizer2.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
