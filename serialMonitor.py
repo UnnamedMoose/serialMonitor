@@ -345,6 +345,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     	# Just print whatever came out of serial port.
 	                    self.logFileTextControl.MoveEnd()
 	                    self.logFileTextControl.WriteText(dataStr)
+	                    # scroll the output txtControl to the bottom
+	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 	                    #TODO I've got a feeling that wx will try to cast to unicode, which might cause uderr.
 	                    #TODO Test this with some weird bytes. Raw output shouldn't cause errors, make it so.
 
