@@ -309,7 +309,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     # unless the user desires to see the raw, undecoded output.
                     # In such case, don't expect end of line characters either.
                     if not self.rawOutputCheckbox.GetValue(): # No raw output.
-                    	try:#TODO test if this works as it used to.
+                    	try:
 			                self.arduinoOutputBuffer += dataStr.decode('ascii')
 
 			                # extract any full lines and log them - there can be more than
@@ -346,7 +346,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                    self.logFileTextControl.MoveEnd()
 	                    self.logFileTextControl.WriteText(dataStr)
 	                    #TODO I've got a feeling that wx will try to cast to unicode, which might cause uderr.
-	                    #TODO Test this. raw output shouldn't cause raw errors, make it so.
+	                    #TODO Test this with some weird bytes. Raw output shouldn't cause errors, make it so.
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
