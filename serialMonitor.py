@@ -305,6 +305,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     # Read the bytes.
                     dataStr=self.arduinoSerialConnection.read(
                         self.arduinoSerialConnection.inWaiting() )
+                    
                     # Pass to the buffer and convert from binary array to ASCII,
                     # unless the user desires to see the raw, undecoded output.
                     # In such case, don't expect end of line characters either.
@@ -338,17 +339,18 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 					        self.logFileTextControl.BeginTextColour((255,0,0))
 					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
 					        self.logFileTextControl.EndTextColour()
-					        #TODO log the error and the line that caused it.
+					        # Log the error and the line that caused it.
 					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
                     else: # User wants raw ouptut.
                     	# Just print whatever came out of serial port.
+	                    print(dataStr)#TODO verify the output in the console.
+	                    print(dataStr.decode('ascii',errors='replace'))
+	                    print(unicode(dataStr,errors='replace'))#TODO this is OK in console but not in TextCtrl?
 	                    self.logFileTextControl.MoveEnd()
-	                    self.logFileTextControl.WriteText(dataStr)
+	                    self.logFileTextControl.WriteText(dataStr.decode('ascii',errors='replace'))
 	                    # scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
-	                    #TODO I've got a feeling that wx will try to cast to unicode, which might cause uderr.
-	                    #TODO Test this with some weird bytes. Raw output shouldn't cause errors, make it so.
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
