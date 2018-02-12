@@ -45,6 +45,17 @@ import wx, string
 import os, sys
 import serial
 import glob
+import logging
+
+# Create a logger for the application.
+logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
+logger.setLevel(logging.INFO)
+handler=logging.StreamHandler() # Will output to STDOUT.
+formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+handler.setLevel(logging.INFO)
+logger.addHandler(handler)
+#TODO Attach the handler to the logger later, when user specifies the level.
 
 class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
@@ -72,7 +83,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.parseOutputsTimer.Start(int(self.readDelay))
 
         # update the ports available at start-up
-        self.updatePorts()
+        self.updatePorts(suppressWarn=True)
         self.portChoice.SetSelection(0)
 
         self.Layout() # Make sure everything is nicely located in the sizers on startup.
@@ -197,12 +208,20 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
 		return ports
 
-    def updatePorts(self):
+    def updatePorts(self,suppressWarn=False):
         """ Checks the list of open serial ports and updates the internal list
-        and the options shown in the dropdown selection menu. """
+        and the options shown in the dropdown selection menu.
+        
+        Args
+        -----
+        suppressWarn (bool): whether to suppress showing a wx.MessageBox with
+        	a warning if no active ports are found.
+    	"""
 
         # check what ports are currently open
         ports = self.getActivePorts()
+        if len(ports)<=0 and not suppressWarn:
+            wx.MessageBox('Check connection and port permissions.','Found no active ports!',wx.ICON_ERROR,None)
 
         # save current selection
         currentSelection = self.portChoice.GetStringSelection()
@@ -286,47 +305,83 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     def parseOutputs(self):
         """ Check the serial connection for any inbound information and read it if it's
         available. Pass it to the respective handlers accordingly  """
-
         if self.portOpen:
             if self.checkConnection():
-                try:
-                    # use a non-blocking approach to read the data - this is generally
-                    # much less disruptive to the overall program flow than relying
-                    # on Serial.readline()
+                # use a non-blocking approach to read the data - this is generally
+                # much less disruptive to the overall program flow than relying
+                # on Serial.readline()
 
-                    # if incoming bytes are waiting to be read from the serial input buffer
-                    if (self.arduinoSerialConnection.inWaiting()>0):
-                        # read the bytes and convert from binary array to ASCII
-                        dataStr = self.arduinoSerialConnection.read(
-                            self.arduinoSerialConnection.inWaiting() ).decode('ascii')
+                # if incoming bytes are waiting to be read from the serial input buffer
+                if (self.arduinoSerialConnection.inWaiting()>0):
+                    # Read the bytes.
+                    dataStr=self.arduinoSerialConnection.read(
+                        self.arduinoSerialConnection.inWaiting() )
+                    
+                    # Pass to the buffer and convert from binary array to ASCII
+                    # and split the output on EOL characters, unless the user
+                    # desires to see the raw, undecoded output. In such case,
+                    # don't expect end of line characters and replace unkown bytes
+                    # with unicode replacement character. Also allow the user
+                    # to see the hex code of the received bytes, not unicode.
+                    if not self.rawOutputCheckbox.GetValue(): # No raw output.
+                    	try:
+			                self.arduinoOutputBuffer += dataStr.decode('ascii')
 
-                        # pass to the buffer
-                        self.arduinoOutputBuffer += dataStr
+			                # extract any full lines and log them - there can be more than
+			                # one, depending on the loop frequencies on either side of the
+			                # serial conneciton
+			                lines = self.arduinoOutputBuffer.rpartition("\n")
+			                if lines[0]:
+			                    for line in lines[0].split("\n"):
+			                    	# go to the end of the console in case the user has moved the cursor
+			                    	self.logFileTextControl.MoveEnd()
+			                        # Write the line to text ctrl and log it.
+			                        self.logFileTextControl.WriteText(line+"\n")
+			                        logger.info(line)
 
-                        # extract any full lines and log them - there can be more than
-                        # one, depending on the loop frequencies on either side of the
-                        # serial conneciton
-                        lines = self.arduinoOutputBuffer.rpartition("\n")
-                        if lines[0]:
-                            for line in lines[0].split("\n"):
-                            	# go to the end of the console in case the user has moved the cursor
-                            	self.logFileTextControl.MoveEnd()
-                                # log the line
-                                self.logFileTextControl.WriteText(line+"\n")
+			                        # TODO TODO TODO
+			                        # this is where one can pass the outputs to where they need to go
 
-                                # TODO TODO TODO
-                                # this is where one can pass the outputs to where they need to go
+			                    # scroll the output txtControl to the bottom
+			                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
-                            # scroll the output txtControl to the bottom
-                            self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+			                    # only leave the last chunk without any EOL chars in the buffer
+			                    self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
+                    	except UnicodeDecodeError as uderr:
+					        # Sometimes rubbish gets fed to the serial port.
+					        # Print the error in the console to let the user know something's not right.
+					        self.logFileTextControl.MoveEnd()
+					        self.logFileTextControl.BeginTextColour((255,0,0))
+					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
+					        self.logFileTextControl.EndTextColour()
+					        # Log the error and the line that caused it.
+					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
-                            # only leave the last chunk without any EOL chars in the buffer
-                            self.arduinoOutputBuffer = lines[2]
-
-                except UnicodeDecodeError:
-                    # sometimes rubbish gets fed to the serial port upon initialisation,
-                    # just let it go
-                    pass
+                    elif not self.hexOutputCheckbox.GetValue(): # Raw but not hex ouptut.
+	                    # Just print whatever came out of the serial port.
+	                    # Writing unicode(dataStr) to logFileTextControl will sometimes
+	                    # skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
+	                    # Write one character at the time and repalce invalid bytes manually.
+	                    for c in dataStr:
+	                        try:
+	                            self.logFileTextControl.MoveEnd()
+	                            self.logFileTextControl.WriteText(unicode(c,errors='strict'))
+	                        except UnicodeDecodeError: # c was an unknown byte - replace it.
+	                            self.logFileTextControl.MoveEnd()
+	                            self.logFileTextControl.WriteText(u'\uFFFD')
+	                    # Log the line that we received.
+	                    logger.info(unicode(dataStr,errors='replace'))
+	                    # Scroll the output txtControl to the bottom
+	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                    else: # Hex output.
+	                    # Hex encoding of the datStr.
+	                    hexDataStr=":".join("{:02x}".format(ord(c)) for c in dataStr)
+	                    self.logFileTextControl.MoveEnd()
+	                    self.logFileTextControl.WriteText(hexDataStr)
+	                    # Log the line that we received.
+	                    logger.info(hexDataStr)
+	                    # Scroll the output txtControl to the bottom
+	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
