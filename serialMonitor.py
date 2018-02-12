@@ -48,14 +48,14 @@ import glob
 import logging
 
 # Create a logger for the application.
-logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
+logger = logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
 logger.setLevel(logging.INFO)
-handler=logging.StreamHandler() # Will output to STDOUT.
-formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler() # Will output to STDOUT.
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
-#TODO Attach the handler to the logger later, when user specifies the level.
+# TODO Attach the handler to the logger later, when user specifies the level.
 
 class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
@@ -211,7 +211,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     def updatePorts(self,suppressWarn=False):
         """ Checks the list of open serial ports and updates the internal list
         and the options shown in the dropdown selection menu.
-        
+
         Args
         -----
         suppressWarn (bool): whether to suppress showing a wx.MessageBox with
@@ -220,14 +220,15 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
         # check what ports are currently open
         ports = self.getActivePorts()
-        if len(ports)<=0 and not suppressWarn:
-            wx.MessageBox('Check connection and port permissions.','Found no active ports!',wx.ICON_ERROR,None)
+        if (len(ports) <= 0) and not suppressWarn:
+            wx.MessageBox('Check connection and port permissions.', 'Found no active ports!',
+                wx.ICON_ERROR, None)
 
         # save current selection
         currentSelection = self.portChoice.GetStringSelection()
 
         # Remove the current options
-        for i in range(len(self.portChoice.GetStrings())-1,-1,-1):
+        for i in range(len(self.portChoice.GetStrings())-1, -1, -1):
             self.portChoice.Delete(i)
 
         # add the newly found ports
@@ -264,7 +265,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
         if not self.arduinoSerialConnection or not self.arduinoSerialConnection.readable() or not testMsgGood:
             wx.MessageBox('Arduino isn\'t readable! Check the connection...', 'Error',
-                  wx.OK | wx.ICON_ERROR)
+                wx.OK | wx.ICON_ERROR)
 
             # close the connection
             self.arduinoSerialConnection.close()
@@ -316,7 +317,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     # Read the bytes.
                     dataStr=self.arduinoSerialConnection.read(
                         self.arduinoSerialConnection.inWaiting() )
-                    
+
                     # Pass to the buffer and convert from binary array to ASCII
                     # and split the output on EOL characters, unless the user
                     # desires to see the raw, undecoded output. In such case,
@@ -346,14 +347,20 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 			                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
 			                    # only leave the last chunk without any EOL chars in the buffer
-			                    self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
+                                # this part of lines will contain no characters if full lines have
+                                # been read or left-over pieces of a line that had not been fully
+                                # sent when the outputBuffer was last refreshed - it is added at the
+                                # beginning of the next stream of data
+			                    self.arduinoOutputBuffer = lines[2]
+
                     	except UnicodeDecodeError as uderr:
 					        # Sometimes rubbish gets fed to the serial port.
 					        # Print the error in the console to let the user know something's not right.
 					        self.logFileTextControl.MoveEnd()
-					        self.logFileTextControl.BeginTextColour((255,0,0))
+					        self.logFileTextControl.BeginTextColour((255, 0, 0))
 					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
 					        self.logFileTextControl.EndTextColour()
+
 					        # Log the error and the line that caused it.
 					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
@@ -369,10 +376,12 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                        except UnicodeDecodeError: # c was an unknown byte - replace it.
 	                            self.logFileTextControl.MoveEnd()
 	                            self.logFileTextControl.WriteText(u'\uFFFD')
+
 	                    # Log the line that we received.
 	                    logger.info(unicode(dataStr,errors='replace'))
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                    
                     else: # Hex output.
 	                    # Hex encoding of the datStr.
 	                    hexDataStr=":".join("{:02x}".format(ord(c)) for c in dataStr)
