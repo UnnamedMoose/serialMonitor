@@ -13,7 +13,11 @@ Arduino or other piece of hardware via a serial port. It provides:
 
 ## Requirements
 
-Requires wxWidgets 2.8 or newer. To install on Ubuntu Linux:
+Requires wxWidgets 2.8 or newer.
+**NOTE: issues have been reported with wxWidgets 3 and higher. These may require
+updates to a few lines of the code to convert strings to unicode format.**
+
+To install on Ubuntu Linux:
 ```
     apt-get install python-wxgtk2.8 python-wxtools wx2.8-i18n libwxgtk2.8-dev libgtk2.0-dev
 ```
