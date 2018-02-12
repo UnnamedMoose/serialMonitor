@@ -45,6 +45,17 @@ import wx, string
 import os, sys
 import serial
 import glob
+import logging
+
+# Create a logger for the application.
+logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
+logger.setLevel(logging.INFO)
+handler=logging.StreamHandler() # Will output to STDOUT.
+formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+handler.setLevel(logging.INFO)
+logger.addHandler(handler)
+#TODO Attach the handler to the logger later, when user specifies the level.
 
 class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
@@ -323,8 +334,9 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 			                    for line in lines[0].split("\n"):
 			                    	# go to the end of the console in case the user has moved the cursor
 			                    	self.logFileTextControl.MoveEnd()
-			                        # log the line
+			                        # Write the line to text ctrl and log it.
 			                        self.logFileTextControl.WriteText(line+"\n")
+			                        logger.info(line)
 
 			                        # TODO TODO TODO
 			                        # this is where one can pass the outputs to where they need to go
@@ -351,7 +363,6 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                    # Writing unicode(dataStr) to logFileTextControl will sometimes
 	                    # skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
 	                    # Write one character at the time and repalce invalid bytes manually.
-	                    #TODO log unicode(dataStr,errors='replace')
 	                    for c in dataStr:
 	                        try:
 	                            self.logFileTextControl.MoveEnd()
@@ -359,6 +370,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                        except UnicodeDecodeError: # c was an unknown byte - replace it.
 	                            self.logFileTextControl.MoveEnd()
 	                            self.logFileTextControl.WriteText(u'\uFFFD')
+	                    # Log the line that we received.
+	                    logger.info(unicode(dataStr,errors='replace'))
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
