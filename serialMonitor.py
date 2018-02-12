@@ -306,9 +306,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     dataStr=self.arduinoSerialConnection.read(
                         self.arduinoSerialConnection.inWaiting() )
                     
-                    # Pass to the buffer and convert from binary array to ASCII,
-                    # unless the user desires to see the raw, undecoded output.
-                    # In such case, don't expect end of line characters either.
+                    # Pass to the buffer and convert from binary array to ASCII
+                    # and split the output on EOL characters, unless the user
+                    # desires to see the raw, undecoded output. In such case,
+                    # don't expect end of line characters and replace unkown bytes
+                    # with unicode replacement character.
                     if not self.rawOutputCheckbox.GetValue(): # No raw output.
                     	try:
 			                self.arduinoOutputBuffer += dataStr.decode('ascii')
@@ -343,13 +345,21 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
                     else: # User wants raw ouptut.
-                    	# Just print whatever came out of serial port.
-	                    print(dataStr)#TODO verify the output in the console.
-	                    print(dataStr.decode('ascii',errors='replace'))
-	                    print(unicode(dataStr,errors='replace'))#TODO this is OK in console but not in TextCtrl?
-	                    self.logFileTextControl.MoveEnd()
-	                    self.logFileTextControl.WriteText(dataStr.decode('ascii',errors='replace'))
-	                    # scroll the output txtControl to the bottom
+	                    # Just print whatever came out of the serial port.
+	                    #TODO enable the user to see hex output in the terminal.
+	                    #print(":".join("{:02x}".format(ord(c)) for c in dataStr)) # Hex encoding of the string.
+	                    # Writing unicode(dataStr) to logFileTextControl will sometimes
+	                    # skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
+	                    # Write one character at the time and repalce invalid bytes manually.
+	                    #TODO log unicode(dataStr,errors='replace')
+	                    for c in dataStr:
+	                        try:
+	                            self.logFileTextControl.MoveEnd()
+	                            self.logFileTextControl.WriteText(unicode(c,errors='strict'))
+	                        except UnicodeDecodeError: # c was an unknown byte - replace it.
+	                            self.logFileTextControl.MoveEnd()
+	                            self.logFileTextControl.WriteText(u'\uFFFD')
+	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
 # implements the GUI class to run a wxApp
