@@ -321,7 +321,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     # and split the output on EOL characters, unless the user
                     # desires to see the raw, undecoded output. In such case,
                     # don't expect end of line characters and replace unkown bytes
-                    # with unicode replacement character.
+                    # with unicode replacement character. Also allow the user
+                    # to see the hex code of the received bytes, not unicode.
                     if not self.rawOutputCheckbox.GetValue(): # No raw output.
                     	try:
 			                self.arduinoOutputBuffer += dataStr.decode('ascii')
@@ -356,10 +357,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 					        # Log the error and the line that caused it.
 					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
-                    else: # User wants raw ouptut.
+                    elif not self.hexOutputCheckbox.GetValue(): # Raw but not hex ouptut.
 	                    # Just print whatever came out of the serial port.
-	                    #TODO enable the user to see hex output in the terminal.
-	                    #print(":".join("{:02x}".format(ord(c)) for c in dataStr)) # Hex encoding of the string.
 	                    # Writing unicode(dataStr) to logFileTextControl will sometimes
 	                    # skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
 	                    # Write one character at the time and repalce invalid bytes manually.
@@ -372,6 +371,15 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                            self.logFileTextControl.WriteText(u'\uFFFD')
 	                    # Log the line that we received.
 	                    logger.info(unicode(dataStr,errors='replace'))
+	                    # Scroll the output txtControl to the bottom
+	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                    else: # Hex output.
+	                    # Hex encoding of the datStr.
+	                    hexDataStr=":".join("{:02x}".format(ord(c)) for c in dataStr)
+	                    self.logFileTextControl.MoveEnd()
+	                    self.logFileTextControl.WriteText(hexDataStr)
+	                    # Log the line that we received.
+	                    logger.info(hexDataStr)
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 

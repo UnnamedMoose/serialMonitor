@@ -66,6 +66,9 @@ class mainFrame ( wx.Frame ):
 		self.rawOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Raw output", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.rawOutputCheckbox, 0, wx.ALL, 5 )
 		
+		self.hexOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Hex output", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer2.Add( self.hexOutputCheckbox, 0, wx.ALL, 5 )
+		
 		
 		bSizer2.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 		
