@@ -10,6 +10,7 @@ Arduino or other piece of hardware via a serial port. It provides:
 - a button used to update the list of available ports (e.g. after resetting the
     physical connection)
 - text boxes used to update the refresh rate of the GUI and the conenction Baud rate
+- allows raw byte or hex code output as well as ascii strings to be parsed
 
 ## Requirements
 
