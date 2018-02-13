@@ -96,6 +96,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         """ close the serial port before terminating, need to make sure it isn't left hanging """
         if self.portOpen:
             self.arduinoSerialConnection.close()
+            logger.info('Disconnected from port before shutdown.')
         self.Destroy()
 
     def onSendInput(self, event):
@@ -121,6 +122,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     if self.checkConnection():
                         self.portOpen = True
                         self.currentPort = self.portChoice.GetStringSelection()
+                        logger.info('Connected to port {}'.format(self.currentPort))
 
             except:
                 wx.MessageBox('Unknown problem occurred while establishing connection using the chosen port!', 'Error',
@@ -128,6 +130,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                 self.arduinoSerialConnection = 0
                 self.portOpen = False
                 self.updatePorts()
+                logger.error('Failed to connect to a port.')
 
         # if None is chosen then close the current port
         else:
@@ -252,6 +255,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.portOpen = False
         self.portChoice.SetSelection(0)
         self.currentPort = 'None'
+        logger.info('User disconnected from port.')
 
     def checkConnection(self):
         """ Checks if the Arduino is still connected. """
@@ -263,6 +267,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             testMsgGood = False
 
         if not self.arduinoSerialConnection or not self.arduinoSerialConnection.readable() or not testMsgGood:
+            logger.error('Lost port connection.')
             wx.MessageBox('Arduino isn\'t readable! Check the connection...', 'Error',
                   wx.OK | wx.ICON_ERROR)
 
@@ -355,7 +360,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
 					        self.logFileTextControl.EndTextColour()
 					        # Log the error and the line that caused it.
-					        print('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
+					        logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
                     elif not self.hexOutputCheckbox.GetValue(): # Raw but not hex ouptut.
 	                    # Just print whatever came out of the serial port.
