@@ -1,0 +1,6 @@
+# Include the license file
+include LICENSE
+include VERSION
+include README.rst
+
+# No need to include package data since we're on Python >2.6

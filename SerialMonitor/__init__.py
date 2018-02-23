@@ -418,7 +418,8 @@ class serialMonitorGuiApp(wx.App):
         self.frame.Show(True)
         return True
 
-if __name__ == "__main__":
+def main():
+    """ Used by an entry-point script. """
     # need an environment variable on Ubuntu to make the menu bars show correctly
     env = os.environ
     if not(('UBUNTU_MENUPROXY' in env) and (env['UBUNTU_MENUPROXY'] == 0)):
@@ -427,3 +428,6 @@ if __name__ == "__main__":
     # start the app
     app = serialMonitorGuiApp()
     app.MainLoop()
+
+if __name__ == "__main__":
+    main()
