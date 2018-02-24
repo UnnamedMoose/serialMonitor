@@ -27,7 +27,7 @@ setup(
     url='https://github.com/UnnamedMoose/serialMonitor',
 
     # Author details
-    author='Aleksander Lidtke',
+    author='Artur Lidtke & Aleksander Lidtke',
 
     # Choose your license
     license='MIT',
