@@ -22,7 +22,7 @@ class mainFrame ( wx.Frame ):
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"serialMonitor", pos = wx.DefaultPosition, size = wx.Size( -1,-1 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 		
-		self.SetSizeHintsSz( wx.Size( 600,400 ), wx.DefaultSize )
+		self.SetSizeHints( wx.Size( 600,400 ), wx.DefaultSize )
 		
 		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 		
@@ -64,17 +64,17 @@ class mainFrame ( wx.Frame ):
 		bSizer2.Add( self.clearButton, 0, wx.ALL|wx.EXPAND, 5 )
 		
 		self.rawOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Raw output", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.rawOutputCheckbox.SetToolTipString( u"Toggle between displaying complete lines terminated with an EOL char, or all received bytes as they arrive." )
+		self.rawOutputCheckbox.SetToolTip( u"Toggle between displaying complete lines terminated with an EOL char, or all received bytes as they arrive." )
 		
 		bSizer2.Add( self.rawOutputCheckbox, 0, wx.ALL, 5 )
 		
 		self.hexOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Hex output", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.hexOutputCheckbox.SetToolTipString( u"Tick to show hex codes of the received bytes. Only works with \"Raw output\"." )
+		self.hexOutputCheckbox.SetToolTip( u"Tick to show hex codes of the received bytes. Only works with \"Raw output\"." )
 		
 		bSizer2.Add( self.hexOutputCheckbox, 0, wx.ALL, 5 )
 		
 		self.fileLogCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.fileLogCheckbox.SetToolTipString( u"Tick to stream the log output to a chosen file." )
+		self.fileLogCheckbox.SetToolTip( u"Tick to stream the log output to a chosen file." )
 		
 		bSizer2.Add( self.fileLogCheckbox, 0, wx.ALL, 5 )
 		
