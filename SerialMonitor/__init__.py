@@ -50,8 +50,13 @@ import logging
 # Create a logger for the application.
 logger = logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
 logger.setLevel(logging.INFO)
+<<<<<<< HEAD:serialMonitor.py
+handler = logging.StreamHandler() # Will output to STDOUT.
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+=======
 handler=logging.StreamHandler() # Will output to STDERR.
 formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+>>>>>>> 6adeb0aa2e8b3ef9e3208e5e4924750490d091d4:SerialMonitor/__init__.py
 handler.setFormatter(formatter)
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
