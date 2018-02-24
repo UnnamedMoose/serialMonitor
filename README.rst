@@ -17,6 +17,16 @@ Requires wxWidgets 2.8 or newer. To install on Ubuntu Linux:
 ```
     apt-get install python-wxgtk2.8 python-wxtools wx2.8-i18n libwxgtk2.8-dev libgtk2.0-dev
 ```
+
+To use wxWidgets 4.0 or newer, install the following prerequisites:
+```
+	apt-get install libgtk-3-dev libgstreamer-plugins-base0.10-dev libwebkit-dev libwebkitgtk-3.0-dev
+```
+According to [this post](https://github.com/wxWidgets/Phoenix/issues/465), the
+wx installer cannot handle all the dependencies itself, so these have to be
+installed by hand. A complete list of dependencies can be found
+[here](https://github.com/wxWidgets/Phoenix/issues/465).
+
 GUI built with wxFormbuilder 3.5.1 (https://github.com/wxFormBuilder/wxFormBuilder)
 To install on Ubuntu Linux:
 ```
@@ -24,7 +34,7 @@ To install on Ubuntu Linux:
     apt-get install wxformbuilder
 ```
 
-Tested on Ubuntu 14.04 with Pyton 2.7.6
+Tested on Ubuntu 14.04 with Python 2.7.6
 
 ## Example
 
