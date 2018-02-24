@@ -72,6 +72,9 @@ class mainFrame ( wx.Frame ):
 		self.fileLogCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.fileLogCheckbox, 0, wx.ALL, 5 )
 		
+		
+		bSizer2.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
+		
 		self.commandLineLabel = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Type command:", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.commandLineLabel.Wrap( -1 )
 		bSizer2.Add( self.commandLineLabel, 0, wx.ALL|wx.EXPAND, 5 )
