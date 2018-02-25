@@ -27,7 +27,7 @@ setup(
     url='https://github.com/UnnamedMoose/serialMonitor',
 
     # Author details
-    author='Aleksander Lidtke',
+    author='Artur Lidtke & Aleksander Lidtke',
 
     # Choose your license
     license='MIT',
@@ -44,7 +44,7 @@ setup(
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
-    install_requires=['wxpython>=4.0.1','pyserial','logging'],
+    install_requires=['wxpython>=3.0.2','pyserial','logging'],
 
     extras_require={
         'dev': ['pdb'],

@@ -1013,7 +1013,7 @@
                                     <property name="style"></property>
                                     <property name="subclass"></property>
                                     <property name="toolbar_pane">0</property>
-                                    <property name="tooltip">Toggle between displaying complete lines terminated with an EOL char, or all received bytes as they arrive.</property>
+                                    <property name="tooltip"></property>
                                     <property name="validator_data_type"></property>
                                     <property name="validator_style">wxFILTER_NONE</property>
                                     <property name="validator_type">wxDefaultValidator</property>
@@ -1101,7 +1101,7 @@
                                     <property name="style"></property>
                                     <property name="subclass"></property>
                                     <property name="toolbar_pane">0</property>
-                                    <property name="tooltip">Tick to show hex codes of the received bytes. Only works with &quot;Raw output&quot;.</property>
+                                    <property name="tooltip"></property>
                                     <property name="validator_data_type"></property>
                                     <property name="validator_style">wxFILTER_NONE</property>
                                     <property name="validator_type">wxDefaultValidator</property>
@@ -1189,7 +1189,7 @@
                                     <property name="style"></property>
                                     <property name="subclass"></property>
                                     <property name="toolbar_pane">0</property>
-                                    <property name="tooltip">Tick to stream the log output to a chosen file.</property>
+                                    <property name="tooltip"></property>
                                     <property name="validator_data_type"></property>
                                     <property name="validator_style">wxFILTER_NONE</property>
                                     <property name="validator_type">wxDefaultValidator</property>
@@ -1221,6 +1221,16 @@
                                     <event name="OnSetFocus"></event>
                                     <event name="OnSize"></event>
                                     <event name="OnUpdateUI"></event>
+                                </object>
+                            </object>
+                            <object class="sizeritem" expanded="0">
+                                <property name="border">5</property>
+                                <property name="flag">wxEXPAND</property>
+                                <property name="proportion">1</property>
+                                <object class="spacer" expanded="0">
+                                    <property name="height">0</property>
+                                    <property name="permission">protected</property>
+                                    <property name="width">0</property>
                                 </object>
                             </object>
                             <object class="sizeritem" expanded="0">
