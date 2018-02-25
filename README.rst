@@ -11,6 +11,14 @@ Arduino or other piece of hardware via a serial port. It provides:
     physical connection)
 - text boxes used to update the refresh rate of the GUI and the conenction Baud rate
 
+## Installation and running
+
+There are two options:
+- install using pip
+- run directly by setting ```SerialMonitor/__init__.py``` as an executable using
+    ```chmod +x __init__py.``` and then executing it as ```./__init__.py```;
+    can also use the symbolic link in the main directory for it
+
 ## Requirements
 
 Requires wxWidgets 2.8 or newer. To install on Ubuntu Linux:

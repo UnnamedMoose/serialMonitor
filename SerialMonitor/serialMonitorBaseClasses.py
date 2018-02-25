@@ -69,6 +69,9 @@ class mainFrame ( wx.Frame ):
 		self.hexOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Hex output", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer2.Add( self.hexOutputCheckbox, 0, wx.ALL, 5 )
 		
+		self.fileLogCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer2.Add( self.fileLogCheckbox, 0, wx.ALL, 5 )
+		
 		
 		bSizer2.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 		
@@ -112,6 +115,7 @@ class mainFrame ( wx.Frame ):
 		self.readDelayTxtCtrl.Bind( wx.EVT_KILL_FOCUS, self.onUpdateReadDelay )
 		self.readDelayTxtCtrl.Bind( wx.EVT_TEXT_ENTER, self.onUpdateReadDelay )
 		self.clearButton.Bind( wx.EVT_BUTTON, self.onClearConsole )
+		self.fileLogCheckbox.Bind( wx.EVT_CHECKBOX, self.onToggleLogFile )
 		self.inputTextControl.Bind( wx.EVT_TEXT_ENTER, self.onSendInput )
 		self.Bind( wx.EVT_TIMER, self.onParseOutputs, id=parseOutputsTimerID )
 	
@@ -141,6 +145,9 @@ class mainFrame ( wx.Frame ):
 	
 	
 	def onClearConsole( self, event ):
+		event.Skip()
+	
+	def onToggleLogFile( self, event ):
 		event.Skip()
 	
 	def onSendInput( self, event ):

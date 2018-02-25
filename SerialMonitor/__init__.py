@@ -42,7 +42,7 @@ SOFTWARE.
 import serialMonitorBaseClasses
 
 import wx, string
-import os, sys
+import os, sys, time
 import serial
 import glob
 import logging
@@ -50,7 +50,7 @@ import logging
 # Create a logger for the application.
 logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
 logger.setLevel(logging.INFO)
-handler=logging.StreamHandler() # Will output to STDOUT.
+handler=logging.StreamHandler() # Will output to STDERR.
 formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 handler.setLevel(logging.INFO)
@@ -68,6 +68,9 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         already defined. """
         # initialise the underlying object
         serialMonitorBaseClasses.mainFrame.__init__( self, None )
+        
+        # File logger name.
+        self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
 
         # serial communication
         self.portOpen = False # indicates if the serial communication port is open
@@ -179,6 +182,25 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     def onClearConsole(self, event):
     	""" Clear the output/input console """
     	self.logFileTextControl.Clear()
+    	
+    def onToggleLogFile(self, event):
+        """ Open a log file if none is active, or close the existing one. """
+        if self.fileLoggerName is None:
+        	fileDialog=wx.FileDialog(self,"Choose log file",os.getcwd(),
+        						    time.strftime("%Y%m%d%H%M%S_SM.log"),
+        						    "Log files (*.log)|*.log",
+		  		           		    wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        	fileDialog.ShowModal() # Wait for response.
+        	self.fileLoggerName=fileDialog.GetPath() # User-chosen log file.
+        	fileHandler=logging.FileHandler(self.fileLoggerName)
+        	fileHandler.setFormatter(formatter) # Default log formatter.
+        	logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
+    	else:
+        	# Remove the file handler from the logger.
+        	for handler in logger.handlers:
+        		if isinstance(handler,logging.FileHandler): # Only one file handler foreseen.
+        			logger.removeHandler(handler)
+        	self.fileLoggerName=None # Reset.
 
     #============================
     # OTHER FUNCTIONS
@@ -396,7 +418,8 @@ class serialMonitorGuiApp(wx.App):
         self.frame.Show(True)
         return True
 
-if __name__ == "__main__":
+def main():
+    """ Used by an entry-point script. """
     # need an environment variable on Ubuntu to make the menu bars show correctly
     env = os.environ
     if not(('UBUNTU_MENUPROXY' in env) and (env['UBUNTU_MENUPROXY'] == 0)):
@@ -405,3 +428,6 @@ if __name__ == "__main__":
     # start the app
     app = serialMonitorGuiApp()
     app.MainLoop()
+
+if __name__ == "__main__":
+    main()
