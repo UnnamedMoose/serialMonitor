@@ -1,20 +1,22 @@
-## Overview
+Overview
+=========
 
 This is a graphical interface program that allows the user to communicate with a
 microcontroller or other piece of hardware via a serial port. It provides:
-- a simple output window which contains all of the information being routed through
-    the serial port
-- a text box which allows the user to type in an arbitrary command and send it
-    by pressing return
+
+- a simple output window which contains all of the information being routed through the serial port
+- a text box which allows the user to type in an arbitrary command and send it by pressing return
 - a drop-down menu used to select the serial port
-- a button used to update the list of available ports (e.g. after resetting the
-    physical connection)
+- a button used to update the list of available ports (e.g. after resetting the physical connection)
 - text boxes used to update the refresh rate of the GUI and the connection Baud rate
-- ability to display hex codes of the received bytes instead of their unicode
-	representations
+- ability to display hex codes of the received bytes instead of their unicode representations
 - logging facilities that can record the data received over serial port into a file
 
-## Installation
+Usage
+======
+
+Installation
+-------------
 
 There are the two options to use the SerialMonitor:
 - install using pip and run from Python or an entry-point script,
@@ -29,17 +31,8 @@ On Linux, you might need to prepend ```sudo -H``` to the pip call in order allow
 pip to install in write-protected directories. On Windows, you need to prepend
 ```python -m``` and possibly start the command line as an administrator.
 
-## Running
-
-If you install with pip on Ubuntu, an entry-point script will be automatically
-installed in ```/usr/local/bin/serialMonitor``` and added to the ```PATH```.
-So simply typing ```serialMonitor``` in the command line will launch it. If the
-script doesn't work (I don't know where it'll be located on Windows or OSX...),
-you can run the monitor from Python terminal (or put the call in a script yourself):
-```>>> import SerialMonitor
->>> SerialMonitor.main()```
-
-## Requirements
+Prerequisites
+--------------
 
 SerialMonitor requires wxWidgets 4.0.1 or newer. Installing with pip should
 install the newest version of wxWidgets. However, pip might struggle to install
@@ -53,15 +46,32 @@ SerialMonitor and the newest wxWidgets afterwards):
 	libwebkitgtk-3.0-dev
 ```
 
+Running
+--------
+
+If you install with pip on Ubuntu, an entry-point script will be automatically
+installed in ```/usr/local/bin/serialMonitor``` and added to the ```PATH```.
+So simply typing ```serialMonitor``` in the command line will launch it. If the
+script doesn't work (I don't know where it'll be located on Windows or OSX...),
+you can run the monitor from Python terminal (or put the call in a script yourself):
+```>>> import SerialMonitor
+>>> SerialMonitor.main()```
+
+Tested on Ubuntu 16.04 with Pyton 2.7.12.
+
+GUI maintenance
+================
 The GUI was originally built with wxFormbuilder 3.5.1 (https://github.com/wxFormBuilder/wxFormBuilder)
 It does not support the newest wxWidgets, it seems, but to install it on Ubuntu Linux:
 ```
     add-apt-repository ppa:wxformbuilder/release
     apt-get install wxformbuilder
 ```
+* Further GUI edits should be done manually * on the `serialMonitorBaseclasses.py`, until
+wxformbuilder starts to support wx 4. Exporting the code from the form builder right now
+will break the GUI.
 
-Tested on Ubuntu 16.04 with Pyton 2.7.12.
-
-## Example
+Example
+========
 
 ![Alt text](screenshot.png?raw=true "Main window of the program")
