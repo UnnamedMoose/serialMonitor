@@ -200,11 +200,15 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         	fileHandler.setFormatter(formatter) # Default log formatter.
         	logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
     	else:
-        	# Remove the file handler from the logger.
-        	for handler in logger.handlers:
-        		if isinstance(handler,logging.FileHandler): # Only one file handler foreseen.
-        			logger.removeHandler(handler)
-        	self.fileLoggerName=None # Reset.
+        	dlg=wx.MessageDialog(self,"Stop logging?","Stop",wx.YES_NO|wx.ICON_QUESTION)
+        	if dlg.ShowModal()==wx.ID_YES: # Avoid accidental log termination.
+        		# Remove the file handler from the logger.
+        		for handler in logger.handlers:
+        			if isinstance(handler,logging.FileHandler): # Only one file handler foreseen.
+        				logger.removeHandler(handler)
+        		self.fileLoggerName=None # Reset.
+        	else: # The checkbox should still be checked if we don't stop logging.
+        		self.fileLogCheckbox.SetValue(True)
 
     #============================
     # OTHER FUNCTIONS
