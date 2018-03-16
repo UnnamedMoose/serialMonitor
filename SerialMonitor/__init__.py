@@ -47,6 +47,10 @@ import serial
 import glob
 import logging
 
+# Set the module version consistent with pip freeze.
+import pkg_resources as pkg
+__version__=pkg.get_distribution("SerialMonitor").version.lstrip('-').rstrip('-')
+
 # Create a logger for the application.
 logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
 logger.setLevel(logging.INFO)
@@ -67,7 +71,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         """ Create the main frame, deriving from a baseline object which has all the panels, buttons, etc.
         already defined. """
         # initialise the underlying object
-        serialMonitorBaseClasses.mainFrame.__init__( self, None )
+        serialMonitorBaseClasses.mainFrame.__init__( self, None, __version__ )
         
         # File logger name.
         self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
@@ -196,11 +200,15 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         	fileHandler.setFormatter(formatter) # Default log formatter.
         	logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
     	else:
-        	# Remove the file handler from the logger.
-        	for handler in logger.handlers:
-        		if isinstance(handler,logging.FileHandler): # Only one file handler foreseen.
-        			logger.removeHandler(handler)
-        	self.fileLoggerName=None # Reset.
+        	dlg=wx.MessageDialog(self,"Stop logging?","Stop",wx.YES_NO|wx.ICON_QUESTION)
+        	if dlg.ShowModal()==wx.ID_YES: # Avoid accidental log termination.
+        		# Remove the file handler from the logger.
+        		for handler in logger.handlers:
+        			if isinstance(handler,logging.FileHandler): # Only one file handler foreseen.
+        				logger.removeHandler(handler)
+        		self.fileLoggerName=None # Reset.
+        	else: # The checkbox should still be checked if we don't stop logging.
+        		self.fileLogCheckbox.SetValue(True)
 
     #============================
     # OTHER FUNCTIONS
