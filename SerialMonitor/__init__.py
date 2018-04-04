@@ -123,8 +123,13 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     if self.portOpen:
                         self.arduinoSerialConnection.close()
 
-                    self.arduinoSerialConnection = serial.Serial(self.portChoice.GetStringSelection(),
-                                                                 self.BaudRate, timeout = 2)
+                    #TODO should also define parity and stopbits, and possibly bytesize in the Serial initialiser.
+                    self.arduinoSerialConnection = serial.Serial(port=self.portChoice.GetStringSelection(),
+                                                                 baudrate=self.BaudRate,
+                                                                 timeout=2,
+                                                                 stopbits=serial.STOPBITS_ONE, #TODO override default value
+                                                                 parity=serial.PARITY_NONE, #TODO override default value
+                                                                 bytesize=serial.EIGHTBITS) #TODO override default value
 
                     if self.checkConnection():
                         self.portOpen = True
