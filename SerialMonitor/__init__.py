@@ -86,7 +86,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.readDelay = int(self.readDelayTxtCtrl.GetValue())
         self.BaudRate = int(self.baudRateTxtCtrl.GetValue())
 
-        # initialise the timing function for receiving the data from Arduino at a specific interval
+        # initialise the timing function for receiving the data from the serial port at a specific interval
         self.parseOutputsTimer.Start(int(self.readDelay))
 
         # update the ports available at start-up
@@ -113,7 +113,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.inputTextControl.Clear()
 
     def onChoseSerialPort(self, event):
-        """ picks up the newly selected port and attempts to connect to Arduino via it """
+        """ picks up the newly selected port and attempts to connect to a peripheral device via it """
         # ignore the None option
         if self.portChoice.GetStringSelection() != 'None':
             try:
@@ -158,7 +158,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.disconnect()
 
     def onParseOutputs(self, event):
-        """ Get information from the Arduino, if there is anything available """
+        """ Get information from the data received via the serial port, if there is anything available """
         self.parseOutputs()
 
     def onUpdateBaudRate(self, event):
@@ -278,7 +278,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             self.currentPort = 'None'
 
     def disconnect(self):
-        """ Drop the current connection with the Arduino """
+        """ Drop the current connection with the serial port """
         if self.portOpen:
             self.arduinoSerialConnection.close()
         self.arduinoSerialConnection = 0
@@ -288,7 +288,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         logger.info('User disconnected from port.')
 
     def checkConnection(self):
-        """ Checks if the Arduino is still connected. """
+        """ Checks if there is anything still connected to the port. """
 
         testMsgGood = True
         try:
@@ -298,7 +298,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
         if not self.arduinoSerialConnection or not self.arduinoSerialConnection.readable() or not testMsgGood:
             logger.error('Lost port connection.')
-            wx.MessageBox('Arduino isn\'t readable! Check the connection...', 'Error',
+            wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
                   wx.OK | wx.ICON_ERROR)
 
             # close the connection
@@ -315,8 +315,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             return True
 
     def sendMessage(self, msg):
-        """ Sends a message to the Arduino via the serila conneciton, but also takes
-        care of any additional operations, such as logging the message
+        """ Sends a message to the port via the serial conneciton, but also takes
+        care of any additional operations, such as logging the message.
 
         Parameters
         ----------
@@ -333,9 +333,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                 # since the last message
                 self.logFileTextControl.MoveEnd()
                 # add it to the port comms logger
-                self.logFileTextControl.WriteText(msg+"\n")
+                self.logFileTextControl.WriteText(r'OUT: {}'.format(msg))
                 # scroll to the end
                 self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                # Log the sent command.
+                logger.info(r'OUT: {}'.format(msg))
 
     def parseOutputs(self):
         """ Check the serial connection for any inbound information and read it if it's
