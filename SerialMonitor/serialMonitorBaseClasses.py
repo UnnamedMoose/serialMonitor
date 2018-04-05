@@ -117,7 +117,7 @@ class mainFrame ( wx.Frame ):
 		serialMenuItem=serialMenu.Append(wx.NewId(),'Edit serial details','Edit stop bits, parity etc.')
 		menuBar.Append(serialMenu,'Edit serial connection')
 		self.SetMenuBar(menuBar)
-        
+		
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.onClose )
 		self.Bind( wx.EVT_MENU, self.onClose, exitMenuItem )
@@ -178,3 +178,72 @@ class mainFrame ( wx.Frame ):
 	def onEditSerialPort( self, event ):
 		event.Skip()
 
+class serialDetailsFrame( wx.Frame ):
+	""" Used to edit the serial connection details, launched from the mainFrame's menu. """
+	
+	def __init__( self, parent ):
+		wx.Frame.__init__(self, parent, wx.ID_ANY, title='Edit serial connection details') 
+		self.SetSizeHints( wx.Size( 300,250 ), wx.DefaultSize )
+ 
+		# Add a panel so it looks correctly on all platforms.
+		self.panel = wx.Panel(self, wx.ID_ANY)
+
+		# Create all the objects.
+		labelOne = wx.StaticText(self.panel, wx.ID_ANY, 'Stop bits')
+		inputTxtOne = wx.TextCtrl(self.panel, wx.ID_ANY, '')
+ 
+		labelTwo = wx.StaticText(self.panel, wx.ID_ANY, 'Parity')
+		inputTxtTwo = wx.TextCtrl(self.panel, wx.ID_ANY, '')
+ 
+		labelThree = wx.StaticText(self.panel, wx.ID_ANY, 'Byte size (bits)')
+		inputTxtThree = wx.TextCtrl(self.panel, wx.ID_ANY, '')
+ 
+		self.okButton = wx.Button(self.panel, wx.ID_ANY, 'OK')       
+		self.cancelButton = wx.Button(self.panel, wx.ID_ANY, 'Cancel')
+
+		# Create and fill the sizers. 
+		topSizer = wx.BoxSizer(wx.VERTICAL) # For the whole panel.
+		inputOneSizer = wx.BoxSizer(wx.HORIZONTAL) # Text on the left, input on the right.
+		inputTwoSizer = wx.BoxSizer(wx.HORIZONTAL)
+		inputThreeSizer = wx.BoxSizer(wx.HORIZONTAL)
+		buttonSizer = wx.BoxSizer(wx.HORIZONTAL) # Two buttons side by side.
+ 
+		inputOneSizer.Add(labelOne, 0, wx.ALL, 5)
+		inputOneSizer.Add(inputTxtOne, 1, wx.ALL|wx.EXPAND, 5)
+ 
+		inputTwoSizer.Add(labelTwo, 0, wx.ALL, 5)
+		inputTwoSizer.Add(inputTxtTwo, 1, wx.ALL|wx.EXPAND, 5)
+ 
+		inputThreeSizer.Add(labelThree, 0, wx.ALL, 5)
+		inputThreeSizer.Add(inputTxtThree, 1, wx.ALL|wx.EXPAND, 5)
+ 
+		buttonSizer.Add(self.okButton, 0, wx.ALL, 5)
+		buttonSizer.Add(self.cancelButton, 0, wx.ALL, 5)
+ 
+		topSizer.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(inputOneSizer, 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(inputTwoSizer, 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(inputThreeSizer, 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(buttonSizer, 0, wx.ALL|wx.CENTER, 5)
+ 
+		self.panel.SetSizer(topSizer)
+		topSizer.Fit(self)
+		
+		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.onClose )
+		self.cancelButton.Bind( wx.EVT_BUTTON, self.onCancel )
+		self.okButton.Bind( wx.EVT_BUTTON, self.onOK )
+	
+	def __del__( self ):
+		pass
+	
+	# Virtual event handlers, overide them in your derived class
+	def onClose( self, event ):
+		event.Skip()
+		
+	def onOK( self, event ):
+		event.Skip()
+	
+	def onCancel( self, event ):
+		event.Skip()

@@ -61,6 +61,12 @@ handler.setLevel(logging.INFO)
 logger.addHandler(handler)
 #TODO Attach the handler to the logger later, when user specifies the level.
 
+class serialDetailsFrame( serialMonitorBaseClasses.serialDetailsFrame ):
+    def __init__(self, parent):
+        # initialise the underlying object
+        serialMonitorBaseClasses.serialDetailsFrame.__init__( self, parent )
+    #TODO override the virtual methods.
+    
 class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
     #============================
@@ -89,6 +95,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         # No raw output so hexOutputCheckbox checkbox won't change anything.
         # Disable it not to confuse the users.
         self.hexOutputCheckbox.Enable(False)
+        
+        # Current serial connection details.
+        self.currentStopBits=serial.STOPBITS_ONE
+        self.currentParity=serial.PARITY_NONE
+        self.currentByteSize=serial.EIGHTBITS
 
         # initialise the timing function for receiving the data from the serial port at a specific interval
         self.parseOutputsTimer.Start(int(self.readDelay))
@@ -127,13 +138,12 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     if self.portOpen:
                         self.arduinoSerialConnection.close()
 
-                    #TODO should also define parity and stopbits, and possibly bytesize in the Serial initialiser.
                     self.arduinoSerialConnection = serial.Serial(port=self.portChoice.GetStringSelection(),
                                                                  baudrate=self.BaudRate,
                                                                  timeout=2,
-                                                                 stopbits=serial.STOPBITS_ONE, #TODO override default value
-                                                                 parity=serial.PARITY_NONE, #TODO override default value
-                                                                 bytesize=serial.EIGHTBITS) #TODO override default value
+                                                                 stopbits=self.currentStopBits,
+                                                                 parity=self.currentParity,
+                                                                 bytesize=self.currentByteSize)
 
                     if self.checkConnection():
                         self.portOpen = True
@@ -234,7 +244,9 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     	""" Edit the more fine details of the serial connection, like the parity
     	or the stopbits. """
     	print('Edit serial')
-    	event.Skip()
+    	serialFrame = serialDetailsFrame(self) # Main frame is the parent of this.
+    	serialFrame.Show(True)
+    	#TODO edit self.currentParity, self.currentByteSize and self.currentStopBits
 	
     #============================
     # OTHER FUNCTIONS
