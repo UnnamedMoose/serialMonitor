@@ -61,12 +61,26 @@ handler.setLevel(logging.INFO)
 logger.addHandler(handler)
 #TODO Attach the handler to the logger later, when user specifies the level.
 
-class serialDetailsFrame( serialMonitorBaseClasses.serialDetailsFrame ):
+class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
     def __init__(self, parent):
         # initialise the underlying object
-        serialMonitorBaseClasses.serialDetailsFrame.__init__( self, parent )
-    #TODO override the virtual methods.
-    
+        serialMonitorBaseClasses.serialDetailsDialog.__init__( self, parent )
+        
+        # Add the selections to the dropdown menus (defined by the pySerial module).
+        for stopBit in serial.Serial.STOPBITS:
+            self.stopBitsChoice.Append(str(stopBit))
+            self.stopBitsChoices.append(stopBit)
+        
+        for key, val in serial.PARITY_NAMES.iteritems():
+            self.parityChoice.Append(val)
+            self.parityChoices.append(key)
+        
+        for byteSize in serial.Serial.BYTESIZES:
+            self.byteSizeChoice.Append(str(byteSize))
+            self.byteSizeChoices.append(byteSize)
+        
+        #TODO SetSelection to the currentParity etc.
+
 class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
     #============================
@@ -244,8 +258,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     	""" Edit the more fine details of the serial connection, like the parity
     	or the stopbits. """
     	print('Edit serial')
-    	serialFrame = serialDetailsFrame(self) # Main frame is the parent of this.
-    	serialFrame.Show(True)
+    	serialDialog = serialDetailsDialog(self) # Main frame is the parent of this.
+    	result = serialDialog.ShowModal()#TODO this needs to be derived from wx.Dialog to showModal.
+    	if result == wx.ID_OK:
+    	    print('OK')
+    	    print(serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()])
     	#TODO edit self.currentParity, self.currentByteSize and self.currentStopBits
 	
     #============================
