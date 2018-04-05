@@ -208,7 +208,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         	fileHandler=logging.FileHandler(self.fileLoggerName)
         	fileHandler.setFormatter(formatter) # Default log formatter.
         	logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
-    	else:
+        else:
         	dlg=wx.MessageDialog(self,"Stop logging?","Stop",wx.YES_NO|wx.ICON_QUESTION)
         	if dlg.ShowModal()==wx.ID_YES: # Avoid accidental log termination.
         		# Remove the file handler from the logger.
@@ -235,31 +235,31 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     #============================
 
     def getActivePorts(self):
-		""" find the open ports - main part of the code from:
-		http://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
-		"""
-		if sys.platform.startswith('win'):
-		    candidatePorts = ['COM' + str(i + 1) for i in range(256)]
+    	""" find the open ports - main part of the code from:
+    	http://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
+    	"""
+    	if sys.platform.startswith('win'):
+    	    candidatePorts = ['COM' + str(i + 1) for i in range(256)]
 
-		elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-		    candidatePorts = glob.glob('/dev/tty[A-Za-z]*')
+    	elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+    	    candidatePorts = glob.glob('/dev/tty[A-Za-z]*')
 
-		elif sys.platform.startswith('darwin'):
-		    candidatePorts = glob.glob('/dev/tty.*')
+    	elif sys.platform.startswith('darwin'):
+    	    candidatePorts = glob.glob('/dev/tty.*')
 
-		else:
-		    raise EnvironmentError('Unsupported platform')
+    	else:
+    	    raise EnvironmentError('Unsupported platform')
 
-		ports = []
-		for port in candidatePorts:
-		    try:
-		        s = serial.Serial(port)
-		        s.close()
-		        ports.append(port)
-		    except (OSError, serial.SerialException):
+    	ports = []
+    	for port in candidatePorts:
+    	    try:
+        		s = serial.Serial(port)
+        		s.close()
+        		ports.append(port)
+    	    except (OSError, serial.SerialException):
 		        pass
 
-		return ports
+    	return ports
 
     def updatePorts(self,suppressWarn=False):
         """ Checks the list of open serial ports and updates the internal list
@@ -382,37 +382,37 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     # to see the hex code of the received bytes, not unicode.
                     if not self.rawOutputCheckbox.GetValue(): # No raw output.
                     	try:
-			                self.arduinoOutputBuffer += dataStr.decode('ascii')
+                    		self.arduinoOutputBuffer += dataStr.decode('ascii')
 
 			                # extract any full lines and log them - there can be more than
 			                # one, depending on the loop frequencies on either side of the
 			                # serial conneciton
-			                lines = self.arduinoOutputBuffer.rpartition("\n")
-			                if lines[0]:
-			                    for line in lines[0].split("\n"):
-			                    	# go to the end of the console in case the user has moved the cursor
+                    		lines = self.arduinoOutputBuffer.rpartition("\n")
+                    		if lines[0]:
+                    			for line in lines[0].split("\n"):
+			                		# go to the end of the console in case the user has moved the cursor
 			                    	self.logFileTextControl.MoveEnd()
 			                        # Write the line to text ctrl and log it.
-			                        self.logFileTextControl.WriteText(line+"\n")
-			                        logger.info(line)
+			                    	self.logFileTextControl.WriteText(line+"\n")
+			                    	logger.info(line)
 
 			                        # TODO TODO TODO
 			                        # this is where one can pass the outputs to where they need to go
 
 			                    # scroll the output txtControl to the bottom
-			                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                    			self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
 			                    # only leave the last chunk without any EOL chars in the buffer
-			                    self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
+                    			self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
                     	except UnicodeDecodeError as uderr:
 					        # Sometimes rubbish gets fed to the serial port.
 					        # Print the error in the console to let the user know something's not right.
-					        self.logFileTextControl.MoveEnd()
-					        self.logFileTextControl.BeginTextColour((255,0,0))
-					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
-					        self.logFileTextControl.EndTextColour()
+                    		self.logFileTextControl.MoveEnd()
+                    		self.logFileTextControl.BeginTextColour((255,0,0))
+                    		self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
+                    		self.logFileTextControl.EndTextColour()
 					        # Log the error and the line that caused it.
-					        logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
+                    		logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
                     elif not self.hexOutputCheckbox.GetValue(): # Raw but not hex ouptut.
 	                    # Just print whatever came out of the serial port.
