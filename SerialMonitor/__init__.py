@@ -229,6 +229,12 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     	    self.hexOutputCheckbox.Enable(False) # Grey it out.
     	    # Upon re-enabling raw output start from the default state of the hex output, too.
     	    self.hexOutputCheckbox.SetValue(False)
+
+    def onEditSerialPort( self, event ):
+    	""" Edit the more fine details of the serial connection, like the parity
+    	or the stopbits. """
+    	print('Edit serial')
+    	event.Skip()
 	
     #============================
     # OTHER FUNCTIONS

@@ -108,8 +108,20 @@ class mainFrame ( wx.Frame ):
 		
 		self.Centre( wx.BOTH )
 		
+		# Add a menu bar.
+		menuBar=wx.MenuBar()
+		fileMenu=wx.Menu() # Nothing special in this menu.
+		exitMenuItem=fileMenu.Append(wx.NewId(),'Exit','Exit the application')
+		menuBar.Append(fileMenu,'File')
+		serialMenu=wx.Menu() # Edit default serial port details.
+		serialMenuItem=serialMenu.Append(wx.NewId(),'Edit serial details','Edit stop bits, parity etc.')
+		menuBar.Append(serialMenu,'Edit serial connection')
+		self.SetMenuBar(menuBar)
+        
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.onClose )
+		self.Bind( wx.EVT_MENU, self.onClose, exitMenuItem )
+		self.Bind( wx.EVT_MENU, self.onEditSerialPort, serialMenuItem )
 		self.portChoice.Bind( wx.EVT_CHOICE, self.onChoseSerialPort )
 		self.updatePortsButton.Bind( wx.EVT_BUTTON, self.onUpdatePorts )
 		self.disconnectButton.Bind( wx.EVT_BUTTON, self.onDisconnect )
@@ -161,5 +173,8 @@ class mainFrame ( wx.Frame ):
 		event.Skip()
 	
 	def onRawOutputTicked( self, event ):
+		event.Skip()
+
+	def onEditSerialPort( self, event ):
 		event.Skip()
 
