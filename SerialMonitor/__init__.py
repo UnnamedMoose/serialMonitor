@@ -85,6 +85,10 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         # set default values
         self.readDelay = int(self.readDelayTxtCtrl.GetValue())
         self.BaudRate = int(self.baudRateTxtCtrl.GetValue())
+        
+        # No raw output so hexOutputCheckbox checkbox won't change anything.
+        # Disable it not to confuse the users.
+        self.hexOutputCheckbox.Enable(False)
 
         # initialise the timing function for receiving the data from the serial port at a specific interval
         self.parseOutputsTimer.Start(int(self.readDelay))
@@ -214,7 +218,18 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         		self.fileLoggerName=None # Reset.
         	else: # The checkbox should still be checked if we don't stop logging.
         		self.fileLogCheckbox.SetValue(True)
-
+    
+    def onRawOutputTicked(self, event):
+    	""" Raw output checkbox status defines whether hex output can also be
+    	enabled or not. Grey it out when it won't affect the program not to
+    	confuse the users. """
+    	if event.IsChecked(): # Hex output can now be enabled.
+    	    self.hexOutputCheckbox.Enable(True)
+    	else: # Now hex output won't change anything.
+    	    self.hexOutputCheckbox.Enable(False) # Grey it out.
+    	    # Upon re-enabling raw output start from the default state of the hex output, too.
+    	    self.hexOutputCheckbox.SetValue(False)
+	
     #============================
     # OTHER FUNCTIONS
     #============================

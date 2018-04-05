@@ -121,6 +121,7 @@ class mainFrame ( wx.Frame ):
 		self.fileLogCheckbox.Bind( wx.EVT_CHECKBOX, self.onToggleLogFile )
 		self.inputTextControl.Bind( wx.EVT_TEXT_ENTER, self.onSendInput )
 		self.Bind( wx.EVT_TIMER, self.onParseOutputs, id=parseOutputsTimerID )
+		self.Bind( wx.EVT_CHECKBOX, self.onRawOutputTicked, self.rawOutputCheckbox )
 	
 	def __del__( self ):
 		pass
@@ -159,4 +160,6 @@ class mainFrame ( wx.Frame ):
 	def onParseOutputs( self, event ):
 		event.Skip()
 	
+	def onRawOutputTicked( self, event ):
+		event.Skip()
 
