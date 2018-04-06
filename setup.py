@@ -44,7 +44,7 @@ setup(
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
-    install_requires=['wxpython>=3.0.2','pyserial','logging'],
+    install_requires=['wxpython>=3.0.2','pyserial'],
 
     extras_require={
         'dev': ['pdb'],
