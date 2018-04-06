@@ -293,8 +293,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     	result = serialDialog.ShowModal() # Need a user to click OK or cancel.
     	if result == wx.ID_OK: # User selected new settings so change the current defaults.
     	    self.currentStopBits=serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()]
-            self.currentParity=serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
-            self.currentByteSize=serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
+    	    self.currentParity=serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
+    	    self.currentByteSize=serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
     	    logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
     	        self.currentStopBits,self.currentParity,self.currentByteSize))
     	    # Tell the user to reconnect for changes to take effect.
@@ -517,7 +517,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         made to take effect by opening a dialog. It'll automatically disappear
         after two seconds. """
         reconnectInfoDialog=PleaseReconnectDialog(self)
-    	wx.CallLater(2000,reconnectInfoDialog.Destroy) # Automatically close after some time.
+        wx.CallLater(2000,reconnectInfoDialog.Destroy) # Automatically close after some time.
         reconnectInfoDialog.ShowModal()
 
 # implements the GUI class to run a wxApp
