@@ -39,7 +39,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import serialMonitorBaseClasses
+import SerialMonitor.serialMonitorBaseClasses as baseClasses
 
 import wx, string
 import os, sys, time
@@ -77,14 +77,14 @@ class PleaseReconnectDialog(wx.Dialog):
         vbox.Add(okButton,1,wx.ALIGN_CENTER|wx.BOTTOM,10)
         self.SetSizer(vbox)
 
-class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
+class serialDetailsDialog( baseClasses.serialDetailsDialog ):
     def __init__(self, parent, currentStopBits, currentParity, currentByteSize):
         """ Parent is the parent object, currentStopBits, currentPartiy and
         currentByte size are the currently used serial.Serial settings, which
         will be selected when the dialog is opened.
         """
         # initialise the underlying object
-        serialMonitorBaseClasses.serialDetailsDialog.__init__( self, parent )
+        baseClasses.serialDetailsDialog.__init__( self, parent )
         
         # Add the selections to the dropdown menus (defined by the pySerial module).
         for stopBit in serial.Serial.STOPBITS:
@@ -102,7 +102,7 @@ class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
             self.byteSizeChoices.append(byteSize)
         self.byteSizeChoice.SetSelection(self.byteSizeChoices.index(currentByteSize))
 
-class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
+class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     #============================
     # CONSTRUCTOR
@@ -112,7 +112,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         """ Create the main frame, deriving from a baseline object which has all the panels, buttons, etc.
         already defined. """
         # initialise the underlying object
-        serialMonitorBaseClasses.mainFrame.__init__( self, None, __version__ )
+        baseClasses.mainFrame.__init__( self, None, __version__ )
         
         # File logger name.
         self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
