@@ -92,7 +92,7 @@ class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
             self.stopBitsChoices.append(stopBit)
         self.stopBitsChoice.SetSelection(self.stopBitsChoices.index(currentStopBits))
         
-        for key, val in serial.PARITY_NAMES.iteritems():
+        for key, val in serial.PARITY_NAMES.items():
             self.parityChoice.Append(val)
             self.parityChoices.append(key)
         self.parityChoice.SetSelection(self.parityChoices.index(currentParity))
