@@ -61,6 +61,22 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 #TODO Attach the handler to the logger later, when user specifies the level.
 
+class PleaseReconnectDialog(wx.Dialog):
+    def __init__(self,parent):
+        """ Tells the user to reconnect to the serial port for the new connection
+        settings to take effect."""
+        wx.Dialog.__init__(self,parent,-1,'Please reconnect',size=(300,120))
+        self.CenterOnScreen(wx.BOTH)
+
+        okButton=wx.Button(self,wx.ID_OK,'OK')
+        okButton.SetDefault()
+        text=wx.StaticText(self,-1,'Please reconnect to the serial port for the changes to take effect.')
+
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(text,1,wx.ALIGN_CENTER|wx.TOP,10)
+        vbox.Add(okButton,1,wx.ALIGN_CENTER|wx.BOTTOM,10)
+        self.SetSizer(vbox)
+
 class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
     def __init__(self, parent, currentStopBits, currentParity, currentByteSize):
         """ Parent is the parent object, currentStopBits, currentPartiy and
@@ -214,8 +230,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         try:
             newValue = int(self.baudRateTxtCtrl.GetValue())
             self.BaudRate = newValue
+            self.notifyToReconnect() # Some people are confused about how this works.
         except ValueError:
             self.baudRateTxtCtrl.SetValue("{:d}".format(self.BaudRate))
+            wx.MessageBox('Please specify integer baud rate','Incorrect baud rate',
+                wx.OK | wx.ICON_WARNING)
 
     def onUpdateReadDelay(self, event):
         """ Update the rate at which outputs are being read from the serial port
@@ -278,8 +297,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             self.currentByteSize=serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
     	    logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
     	        self.currentStopBits,self.currentParity,self.currentByteSize))
-    	#TODO tell the user to reconnect for changes to take effect.
-	
+    	    # Tell the user to reconnect for changes to take effect.
+    	    self.notifyToReconnect()
+    	else: # Nothing's changed.
+    	    pass
+
     #============================
     # OTHER FUNCTIONS
     #============================
@@ -489,6 +511,14 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                    logger.info(hexDataStr)
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+
+    def notifyToReconnect(self):
+        """ Notify the user to reconnect to the serial port for the changes they've
+        made to take effect by opening a dialog. It'll automatically disappear
+        after two seconds. """
+        reconnectInfoDialog=PleaseReconnectDialog(self)
+    	wx.CallLater(2000,reconnectInfoDialog.Destroy) # Automatically close after some time.
+        reconnectInfoDialog.ShowModal()
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
