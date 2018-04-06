@@ -53,16 +53,20 @@ __version__=pkg.get_distribution("SerialMonitor").version.lstrip('-').rstrip('-'
 
 # Create a logger for the application.
 logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 handler=logging.StreamHandler() # Will output to STDERR.
 formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-handler.setLevel(logging.INFO)
+handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 #TODO Attach the handler to the logger later, when user specifies the level.
 
 class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
-    def __init__(self, parent):
+    def __init__(self, parent, currentStopBits, currentParity, currentByteSize):
+        """ Parent is the parent object, currentStopBits, currentPartiy and
+        currentByte size are the currently used serial.Serial settings, which
+        will be selected when the dialog is opened.
+        """
         # initialise the underlying object
         serialMonitorBaseClasses.serialDetailsDialog.__init__( self, parent )
         
@@ -70,16 +74,17 @@ class serialDetailsDialog( serialMonitorBaseClasses.serialDetailsDialog ):
         for stopBit in serial.Serial.STOPBITS:
             self.stopBitsChoice.Append(str(stopBit))
             self.stopBitsChoices.append(stopBit)
+        self.stopBitsChoice.SetSelection(self.stopBitsChoices.index(currentStopBits))
         
         for key, val in serial.PARITY_NAMES.iteritems():
             self.parityChoice.Append(val)
             self.parityChoices.append(key)
+        self.parityChoice.SetSelection(self.parityChoices.index(currentParity))
         
         for byteSize in serial.Serial.BYTESIZES:
             self.byteSizeChoice.Append(str(byteSize))
             self.byteSizeChoices.append(byteSize)
-        
-        #TODO SetSelection to the currentParity etc.
+        self.byteSizeChoice.SetSelection(self.byteSizeChoices.index(currentByteSize))
 
 class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
@@ -163,6 +168,12 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                         self.portOpen = True
                         self.currentPort = self.portChoice.GetStringSelection()
                         logger.info('Connected to port {}'.format(self.currentPort))
+                        # To verify the setting of the serial connection details.
+                        logger.debug('baud={},stop bits={},parity={},byte size={}'.format(
+                            self.arduinoSerialConnection.baudrate,
+                            self.arduinoSerialConnection.stopbits,
+                            self.arduinoSerialConnection.parity,
+                            self.arduinoSerialConnection.bytesize,))
 
             except:
                 wx.MessageBox('Unknown problem occurred while establishing connection using the chosen port!', 'Error',
@@ -257,13 +268,17 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
     def onEditSerialPort( self, event ):
     	""" Edit the more fine details of the serial connection, like the parity
     	or the stopbits. """
-    	print('Edit serial')
-    	serialDialog = serialDetailsDialog(self) # Main frame is the parent of this.
-    	result = serialDialog.ShowModal()#TODO this needs to be derived from wx.Dialog to showModal.
-    	if result == wx.ID_OK:
-    	    print('OK')
-    	    print(serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()])
-    	#TODO edit self.currentParity, self.currentByteSize and self.currentStopBits
+    	logger.debug('Attempting to edit serial connection details.')
+    	serialDialog = serialDetailsDialog(self,self.currentStopBits, # Main frame is the parent of this.
+    		self.currentParity,self.currentByteSize)
+    	result = serialDialog.ShowModal() # Need a user to click OK or cancel.
+    	if result == wx.ID_OK: # User selected new settings so change the current defaults.
+    	    self.currentStopBits=serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()]
+            self.currentParity=serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
+            self.currentByteSize=serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
+    	    logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
+    	        self.currentStopBits,self.currentParity,self.currentByteSize))
+    	#TODO tell the user to reconnect for changes to take effect.
 	
     #============================
     # OTHER FUNCTIONS
