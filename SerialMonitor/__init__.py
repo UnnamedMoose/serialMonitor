@@ -486,8 +486,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 					        # Log the error and the line that caused it.
                     		logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
-#TODO this no longer works on Python 3 because unicode handling has been changed. Logger works.
-
                     elif not self.hexOutputCheckbox.GetValue(): # Raw but not hex ouptut.
 	                    # Just print whatever came out of the serial port.
 	                    # Writing unicode(dataStr) to logFileTextControl will sometimes
@@ -496,7 +494,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 	                    for c in dataStr:
 	                        try:
 	                            self.logFileTextControl.MoveEnd()
-	                            self.logFileTextControl.WriteText(str(c))
+	                            self.logFileTextControl.WriteText(chr(c)) # Change byte into corresponding char.
 	                        except UnicodeDecodeError: # c was an unknown byte - replace it.
 	                            self.logFileTextControl.MoveEnd()
 	                            self.logFileTextControl.WriteText(u'\uFFFD')
@@ -504,9 +502,10 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 	                    logger.info(str(dataStr))
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+
                     else: # Hex output.
 	                    # Hex encoding of the datStr.
-	                    hexDataStr=":".join("{:02x}".format(ord(c)) for c in dataStr)
+	                    hexDataStr=":".join("{}".format(hex(c)) for c in dataStr)
 	                    self.logFileTextControl.MoveEnd()
 	                    self.logFileTextControl.WriteText(hexDataStr)
 	                    # Log the line that we received.
