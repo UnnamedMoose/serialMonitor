@@ -19,9 +19,9 @@ Installation
 -------------
 
 There are the two options to use the SerialMonitor:
+
 - install using pip and run from Python or an entry-point script,
-- run directly by setting ``SerialMonitor/__init__.py`` as an executable using
-``chmod +x __init__py.`` and then executing it as ``./__init__.py``.
+- run directly from source by setting ``SerialMonitor/__init__.py`` as an executable using ``chmod +x __init__py.`` and then executing it as ``./__init__.py``.
 
 Pip is, by far, the easiest option that should also install all the dependencies
 for you. In order to install with pip, just download the newest ``tar.gz``
@@ -36,9 +36,11 @@ Prerequisites
 
 SerialMonitor requires wxWidgets 4.0.1 or newer. Installing with pip should
 install the newest version of wxWidgets. However, pip might struggle to install
-all the wxWidgets dependencies (see [this post](https://github.com/wxWidgets/Phoenix/issues/465)),
+all the wxWidgets dependencies (see `this post 
+<https://github.com/wxWidgets/Phoenix/issues/465>`_),
 so these have to be installed by hand. A complete list of dependencies can be
-found [here](https://github.com/wxWidgets/Phoenix/issues/465). Installing the
+found `here 
+<https://github.com/wxWidgets/Phoenix/issues/465>`_. Installing the
 following dependencies worked on Ubuntu 16 (pip successfully installed the
 SerialMonitor and the newest wxWidgets afterwards):
 
@@ -61,7 +63,8 @@ Tested on Ubuntu 16.04 with Pyton 2.7.12.
 
 GUI maintenance
 ================
-The GUI was originally built with wxFormbuilder 3.5.1 (https://github.com/wxFormBuilder/wxFormBuilder)
+The GUI was originally built with `wxFormbuilder 3.5.1 
+<https://github.com/wxFormBuilder/wxFormBuilder>`_.
 It does not support the newest wxWidgets, it seems, but to install it on Ubuntu Linux:
 
     add-apt-repository ppa:wxformbuilder/release

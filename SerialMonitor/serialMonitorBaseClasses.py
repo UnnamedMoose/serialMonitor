@@ -108,8 +108,20 @@ class mainFrame ( wx.Frame ):
 		
 		self.Centre( wx.BOTH )
 		
+		# Add a menu bar.
+		menuBar=wx.MenuBar()
+		fileMenu=wx.Menu() # Nothing special in this menu.
+		exitMenuItem=fileMenu.Append(wx.NewId(),'Exit','Exit the application')
+		menuBar.Append(fileMenu,'File')
+		serialMenu=wx.Menu() # Edit default serial port details.
+		serialMenuItem=serialMenu.Append(wx.NewId(),'Edit serial details','Edit stop bits, parity etc.')
+		menuBar.Append(serialMenu,'Edit serial connection')
+		self.SetMenuBar(menuBar)
+		
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.onClose )
+		self.Bind( wx.EVT_MENU, self.onClose, exitMenuItem )
+		self.Bind( wx.EVT_MENU, self.onEditSerialPort, serialMenuItem )
 		self.portChoice.Bind( wx.EVT_CHOICE, self.onChoseSerialPort )
 		self.updatePortsButton.Bind( wx.EVT_BUTTON, self.onUpdatePorts )
 		self.disconnectButton.Bind( wx.EVT_BUTTON, self.onDisconnect )
@@ -121,6 +133,7 @@ class mainFrame ( wx.Frame ):
 		self.fileLogCheckbox.Bind( wx.EVT_CHECKBOX, self.onToggleLogFile )
 		self.inputTextControl.Bind( wx.EVT_TEXT_ENTER, self.onSendInput )
 		self.Bind( wx.EVT_TIMER, self.onParseOutputs, id=parseOutputsTimerID )
+		self.Bind( wx.EVT_CHECKBOX, self.onRawOutputTicked, self.rawOutputCheckbox )
 	
 	def __del__( self ):
 		pass
@@ -159,4 +172,73 @@ class mainFrame ( wx.Frame ):
 	def onParseOutputs( self, event ):
 		event.Skip()
 	
+	def onRawOutputTicked( self, event ):
+		event.Skip()
+
+	def onEditSerialPort( self, event ):
+		event.Skip()
+
+class serialDetailsDialog( wx.Dialog ):
+	""" Used to edit the serial connection details, launched from the mainFrame's menu. """
+	
+	def __init__( self, parent ):
+		wx.Dialog.__init__(self, parent, title='Edit serial connection details') 
+		self.SetSizeHints( wx.Size( 300,250 ), wx.DefaultSize )
+ 
+		# Add a panel so it looks correctly on all platforms.
+		self.panel = wx.Panel(self, wx.ID_ANY)
+
+		# Create all the objects.
+		labelOne = wx.StaticText(self.panel, wx.ID_ANY, 'Stop bits')
+		self.stopBitsChoices=[]
+		self.stopBitsChoice=wx.Choice(self.panel, wx.ID_ANY, wx.DefaultPosition,
+			wx.DefaultSize, self.stopBitsChoices, 0 )
+		self.stopBitsChoice.SetSelection( 0 )
+ 
+		labelTwo = wx.StaticText(self.panel, wx.ID_ANY, 'Parity')
+		self.parityChoices=[]
+		self.parityChoice=wx.Choice(self.panel, wx.ID_ANY, wx.DefaultPosition,
+			wx.DefaultSize, self.parityChoices, 0 )
+		self.parityChoice.SetSelection( 0 )
+ 
+		labelThree = wx.StaticText(self.panel, wx.ID_ANY, 'Byte size (bits)')
+		self.byteSizeChoices=[]
+		self.byteSizeChoice=wx.Choice(self.panel, wx.ID_ANY, wx.DefaultPosition,
+			wx.DefaultSize, self.byteSizeChoices, 0 )
+		self.byteSizeChoice.SetSelection( 0 )
+ 
+		self.okButton = wx.Button(self.panel, wx.ID_OK, 'OK')       
+		self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, 'Cancel')
+
+		# Create and fill the sizers. 
+		topSizer = wx.BoxSizer(wx.VERTICAL) # For the whole panel.
+		inputOneSizer = wx.BoxSizer(wx.HORIZONTAL) # Text on the left, input on the right.
+		inputTwoSizer = wx.BoxSizer(wx.HORIZONTAL)
+		inputThreeSizer = wx.BoxSizer(wx.HORIZONTAL)
+		buttonSizer = wx.BoxSizer(wx.HORIZONTAL) # Two buttons side by side.
+ 
+		inputOneSizer.Add(labelOne, 0, wx.ALL, 5)
+		inputOneSizer.Add(self.stopBitsChoice, 1, wx.ALL|wx.EXPAND, 5)
+ 
+		inputTwoSizer.Add(labelTwo, 0, wx.ALL, 5)
+		inputTwoSizer.Add(self.parityChoice, 1, wx.ALL|wx.EXPAND, 5)
+ 
+		inputThreeSizer.Add(labelThree, 0, wx.ALL, 5)
+		inputThreeSizer.Add(self.byteSizeChoice, 1, wx.ALL|wx.EXPAND, 5)
+ 
+		buttonSizer.Add(self.okButton, 0, wx.ALL, 5)
+		buttonSizer.Add(self.cancelButton, 0, wx.ALL, 5)
+ 
+		topSizer.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(inputOneSizer, 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(inputTwoSizer, 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(inputThreeSizer, 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+		topSizer.Add(buttonSizer, 0, wx.ALL|wx.CENTER, 5)
+ 
+		self.panel.SetSizer(topSizer)
+		topSizer.Fit(self)
+	
+	def __del__( self ):
+		pass
 

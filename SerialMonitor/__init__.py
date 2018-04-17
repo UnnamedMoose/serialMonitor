@@ -39,7 +39,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import serialMonitorBaseClasses
+import SerialMonitor.serialMonitorBaseClasses as baseClasses
 
 import wx, string
 import os, sys, time
@@ -53,15 +53,56 @@ __version__=pkg.get_distribution("SerialMonitor").version.lstrip('-').rstrip('-'
 
 # Create a logger for the application.
 logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 handler=logging.StreamHandler() # Will output to STDERR.
 formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-handler.setLevel(logging.INFO)
+handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 #TODO Attach the handler to the logger later, when user specifies the level.
 
-class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
+class PleaseReconnectDialog(wx.Dialog):
+    def __init__(self,parent):
+        """ Tells the user to reconnect to the serial port for the new connection
+        settings to take effect."""
+        wx.Dialog.__init__(self,parent,-1,'Please reconnect',size=(300,120))
+        self.CenterOnScreen(wx.BOTH)
+
+        okButton=wx.Button(self,wx.ID_OK,'OK')
+        okButton.SetDefault()
+        text=wx.StaticText(self,-1,'Please reconnect to the serial port for the changes to take effect.')
+
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(text,1,wx.ALIGN_CENTER|wx.TOP,10)
+        vbox.Add(okButton,1,wx.ALIGN_CENTER|wx.BOTTOM,10)
+        self.SetSizer(vbox)
+
+class serialDetailsDialog( baseClasses.serialDetailsDialog ):
+    def __init__(self, parent, currentStopBits, currentParity, currentByteSize):
+        """ Parent is the parent object, currentStopBits, currentPartiy and
+        currentByte size are the currently used serial.Serial settings, which
+        will be selected when the dialog is opened.
+        """
+        # initialise the underlying object
+        baseClasses.serialDetailsDialog.__init__( self, parent )
+        
+        # Add the selections to the dropdown menus (defined by the pySerial module).
+        for stopBit in serial.Serial.STOPBITS:
+            self.stopBitsChoice.Append(str(stopBit))
+            self.stopBitsChoices.append(stopBit)
+        self.stopBitsChoice.SetSelection(self.stopBitsChoices.index(currentStopBits))
+        
+        for key, val in serial.PARITY_NAMES.items():
+            self.parityChoice.Append(val)
+            self.parityChoices.append(key)
+        self.parityChoice.SetSelection(self.parityChoices.index(currentParity))
+        
+        for byteSize in serial.Serial.BYTESIZES:
+            self.byteSizeChoice.Append(str(byteSize))
+            self.byteSizeChoices.append(byteSize)
+        self.byteSizeChoice.SetSelection(self.byteSizeChoices.index(currentByteSize))
+
+class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     #============================
     # CONSTRUCTOR
@@ -71,7 +112,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         """ Create the main frame, deriving from a baseline object which has all the panels, buttons, etc.
         already defined. """
         # initialise the underlying object
-        serialMonitorBaseClasses.mainFrame.__init__( self, None, __version__ )
+        baseClasses.mainFrame.__init__( self, None, __version__ )
         
         # File logger name.
         self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
@@ -85,8 +126,17 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         # set default values
         self.readDelay = int(self.readDelayTxtCtrl.GetValue())
         self.BaudRate = int(self.baudRateTxtCtrl.GetValue())
+        
+        # No raw output so hexOutputCheckbox checkbox won't change anything.
+        # Disable it not to confuse the users.
+        self.hexOutputCheckbox.Enable(False)
+        
+        # Current serial connection details.
+        self.currentStopBits=serial.STOPBITS_ONE
+        self.currentParity=serial.PARITY_NONE
+        self.currentByteSize=serial.EIGHTBITS
 
-        # initialise the timing function for receiving the data from Arduino at a specific interval
+        # initialise the timing function for receiving the data from the serial port at a specific interval
         self.parseOutputsTimer.Start(int(self.readDelay))
 
         # update the ports available at start-up
@@ -113,7 +163,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.inputTextControl.Clear()
 
     def onChoseSerialPort(self, event):
-        """ picks up the newly selected port and attempts to connect to Arduino via it """
+        """ picks up the newly selected port and attempts to connect to a peripheral device via it """
         # ignore the None option
         if self.portChoice.GetStringSelection() != 'None':
             try:
@@ -123,13 +173,23 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     if self.portOpen:
                         self.arduinoSerialConnection.close()
 
-                    self.arduinoSerialConnection = serial.Serial(self.portChoice.GetStringSelection(),
-                                                                 self.BaudRate, timeout = 2)
+                    self.arduinoSerialConnection = serial.Serial(port=self.portChoice.GetStringSelection(),
+                                                                 baudrate=self.BaudRate,
+                                                                 timeout=2,
+                                                                 stopbits=self.currentStopBits,
+                                                                 parity=self.currentParity,
+                                                                 bytesize=self.currentByteSize)
 
                     if self.checkConnection():
                         self.portOpen = True
                         self.currentPort = self.portChoice.GetStringSelection()
                         logger.info('Connected to port {}'.format(self.currentPort))
+                        # To verify the setting of the serial connection details.
+                        logger.debug('baud={},stop bits={},parity={},byte size={}'.format(
+                            self.arduinoSerialConnection.baudrate,
+                            self.arduinoSerialConnection.stopbits,
+                            self.arduinoSerialConnection.parity,
+                            self.arduinoSerialConnection.bytesize,))
 
             except:
                 wx.MessageBox('Unknown problem occurred while establishing connection using the chosen port!', 'Error',
@@ -158,7 +218,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         self.disconnect()
 
     def onParseOutputs(self, event):
-        """ Get information from the Arduino, if there is anything available """
+        """ Get information from the data received via the serial port, if there is anything available """
         self.parseOutputs()
 
     def onUpdateBaudRate(self, event):
@@ -170,8 +230,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         try:
             newValue = int(self.baudRateTxtCtrl.GetValue())
             self.BaudRate = newValue
+            self.notifyToReconnect() # Some people are confused about how this works.
         except ValueError:
             self.baudRateTxtCtrl.SetValue("{:d}".format(self.BaudRate))
+            wx.MessageBox('Please specify integer baud rate','Incorrect baud rate',
+                wx.OK | wx.ICON_WARNING)
 
     def onUpdateReadDelay(self, event):
         """ Update the rate at which outputs are being read from the serial port
@@ -199,7 +262,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         	fileHandler=logging.FileHandler(self.fileLoggerName)
         	fileHandler.setFormatter(formatter) # Default log formatter.
         	logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
-    	else:
+        else:
         	dlg=wx.MessageDialog(self,"Stop logging?","Stop",wx.YES_NO|wx.ICON_QUESTION)
         	if dlg.ShowModal()==wx.ID_YES: # Avoid accidental log termination.
         		# Remove the file handler from the logger.
@@ -209,37 +272,66 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         		self.fileLoggerName=None # Reset.
         	else: # The checkbox should still be checked if we don't stop logging.
         		self.fileLogCheckbox.SetValue(True)
+    
+    def onRawOutputTicked(self, event):
+    	""" Raw output checkbox status defines whether hex output can also be
+    	enabled or not. Grey it out when it won't affect the program not to
+    	confuse the users. """
+    	if event.IsChecked(): # Hex output can now be enabled.
+    	    self.hexOutputCheckbox.Enable(True)
+    	else: # Now hex output won't change anything.
+    	    self.hexOutputCheckbox.Enable(False) # Grey it out.
+    	    # Upon re-enabling raw output start from the default state of the hex output, too.
+    	    self.hexOutputCheckbox.SetValue(False)
+
+    def onEditSerialPort( self, event ):
+    	""" Edit the more fine details of the serial connection, like the parity
+    	or the stopbits. """
+    	logger.debug('Attempting to edit serial connection details.')
+    	serialDialog = serialDetailsDialog(self,self.currentStopBits, # Main frame is the parent of this.
+    		self.currentParity,self.currentByteSize)
+    	result = serialDialog.ShowModal() # Need a user to click OK or cancel.
+    	if result == wx.ID_OK: # User selected new settings so change the current defaults.
+    	    self.currentStopBits=serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()]
+    	    self.currentParity=serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
+    	    self.currentByteSize=serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
+    	    logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
+    	        self.currentStopBits,self.currentParity,self.currentByteSize))
+    	    # Tell the user to reconnect for changes to take effect.
+    	    self.notifyToReconnect()
+    	else: # Nothing's changed.
+    	    pass
 
     #============================
     # OTHER FUNCTIONS
     #============================
 
     def getActivePorts(self):
-		""" find the open ports - main part of the code from:
-		http://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
-		"""
-		if sys.platform.startswith('win'):
-		    candidatePorts = ['COM' + str(i + 1) for i in range(256)]
+    	""" find the open ports - main part of the code from:
+    	http://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
+    	"""
+    	if sys.platform.startswith('win'):
+    	    candidatePorts = ['COM' + str(i + 1) for i in range(256)]
 
-		elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-		    candidatePorts = glob.glob('/dev/tty[A-Za-z]*')
+    	elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+    	    candidatePorts = glob.glob('/dev/tty[A-Za-z]*')
 
-		elif sys.platform.startswith('darwin'):
-		    candidatePorts = glob.glob('/dev/tty.*')
+    	elif sys.platform.startswith('darwin'):
+    	    candidatePorts = glob.glob('/dev/tty.*')
 
-		else:
-		    raise EnvironmentError('Unsupported platform')
+    	else:
+    	    raise EnvironmentError('Unsupported platform')
 
-		ports = []
-		for port in candidatePorts:
-		    try:
-		        s = serial.Serial(port)
-		        s.close()
-		        ports.append(port)
-		    except (OSError, serial.SerialException):
+    	ports = []
+    	for port in candidatePorts:
+    	    try:
+        		s = serial.Serial(port)
+        		s.close()
+        		ports.append(port)
+    	    except (OSError, serial.SerialException):
 		        pass
 
-		return ports
+    	return ports
 
     def updatePorts(self,suppressWarn=False):
         """ Checks the list of open serial ports and updates the internal list
@@ -278,7 +370,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             self.currentPort = 'None'
 
     def disconnect(self):
-        """ Drop the current connection with the Arduino """
+        """ Drop the current connection with the serial port """
         if self.portOpen:
             self.arduinoSerialConnection.close()
         self.arduinoSerialConnection = 0
@@ -288,7 +380,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
         logger.info('User disconnected from port.')
 
     def checkConnection(self):
-        """ Checks if the Arduino is still connected. """
+        """ Checks if there is anything still connected to the port. """
 
         testMsgGood = True
         try:
@@ -298,7 +390,7 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 
         if not self.arduinoSerialConnection or not self.arduinoSerialConnection.readable() or not testMsgGood:
             logger.error('Lost port connection.')
-            wx.MessageBox('Arduino isn\'t readable! Check the connection...', 'Error',
+            wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
                   wx.OK | wx.ICON_ERROR)
 
             # close the connection
@@ -315,8 +407,8 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
             return True
 
     def sendMessage(self, msg):
-        """ Sends a message to the Arduino via the serila conneciton, but also takes
-        care of any additional operations, such as logging the message
+        """ Sends a message to the port via the serial conneciton, but also takes
+        care of any additional operations, such as logging the message.
 
         Parameters
         ----------
@@ -333,9 +425,11 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                 # since the last message
                 self.logFileTextControl.MoveEnd()
                 # add it to the port comms logger
-                self.logFileTextControl.WriteText(msg+"\n")
+                self.logFileTextControl.WriteText(r'OUT: {}'.format(msg))
                 # scroll to the end
                 self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                # Log the sent command.
+                logger.info(r'OUT: {}'.format(msg))
 
     def parseOutputs(self):
         """ Check the serial connection for any inbound information and read it if it's
@@ -360,37 +454,37 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
                     # to see the hex code of the received bytes, not unicode.
                     if not self.rawOutputCheckbox.GetValue(): # No raw output.
                     	try:
-			                self.arduinoOutputBuffer += dataStr.decode('ascii')
+                    		self.arduinoOutputBuffer += dataStr.decode('ascii')
 
 			                # extract any full lines and log them - there can be more than
 			                # one, depending on the loop frequencies on either side of the
 			                # serial conneciton
-			                lines = self.arduinoOutputBuffer.rpartition("\n")
-			                if lines[0]:
-			                    for line in lines[0].split("\n"):
-			                    	# go to the end of the console in case the user has moved the cursor
+                    		lines = self.arduinoOutputBuffer.rpartition("\n")
+                    		if lines[0]:
+                    			for line in lines[0].split("\n"):
+			                		# go to the end of the console in case the user has moved the cursor
 			                    	self.logFileTextControl.MoveEnd()
 			                        # Write the line to text ctrl and log it.
-			                        self.logFileTextControl.WriteText(line+"\n")
-			                        logger.info(line)
+			                    	self.logFileTextControl.WriteText(line+"\n")
+			                    	logger.info(line)
 
 			                        # TODO TODO TODO
 			                        # this is where one can pass the outputs to where they need to go
 
 			                    # scroll the output txtControl to the bottom
-			                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+                    			self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
 			                    # only leave the last chunk without any EOL chars in the buffer
-			                    self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
+                    			self.arduinoOutputBuffer = lines[2]#TODO what's this? are we recording the entire comms history?
                     	except UnicodeDecodeError as uderr:
 					        # Sometimes rubbish gets fed to the serial port.
 					        # Print the error in the console to let the user know something's not right.
-					        self.logFileTextControl.MoveEnd()
-					        self.logFileTextControl.BeginTextColour((255,0,0))
-					        self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
-					        self.logFileTextControl.EndTextColour()
+                    		self.logFileTextControl.MoveEnd()
+                    		self.logFileTextControl.BeginTextColour((255,0,0))
+                    		self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
+                    		self.logFileTextControl.EndTextColour()
 					        # Log the error and the line that caused it.
-					        logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
+                    		logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
                     elif not self.hexOutputCheckbox.GetValue(): # Raw but not hex ouptut.
 	                    # Just print whatever came out of the serial port.
@@ -400,23 +494,32 @@ class serialMonitorGuiMainFrame( serialMonitorBaseClasses.mainFrame ):
 	                    for c in dataStr:
 	                        try:
 	                            self.logFileTextControl.MoveEnd()
-	                            self.logFileTextControl.WriteText(unicode(c,errors='strict'))
+	                            self.logFileTextControl.WriteText(chr(c)) # Change byte into corresponding char.
 	                        except UnicodeDecodeError: # c was an unknown byte - replace it.
 	                            self.logFileTextControl.MoveEnd()
 	                            self.logFileTextControl.WriteText(u'\uFFFD')
 	                    # Log the line that we received.
-	                    logger.info(unicode(dataStr,errors='replace'))
+	                    logger.info(str(dataStr))
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+
                     else: # Hex output.
 	                    # Hex encoding of the datStr.
-	                    hexDataStr=":".join("{:02x}".format(ord(c)) for c in dataStr)
+	                    hexDataStr=":".join("{}".format(hex(c)) for c in dataStr)
 	                    self.logFileTextControl.MoveEnd()
 	                    self.logFileTextControl.WriteText(hexDataStr)
 	                    # Log the line that we received.
 	                    logger.info(hexDataStr)
 	                    # Scroll the output txtControl to the bottom
 	                    self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+
+    def notifyToReconnect(self):
+        """ Notify the user to reconnect to the serial port for the changes they've
+        made to take effect by opening a dialog. It'll automatically disappear
+        after two seconds. """
+        reconnectInfoDialog=PleaseReconnectDialog(self)
+        wx.CallLater(2000,reconnectInfoDialog.Destroy) # Automatically close after some time.
+        reconnectInfoDialog.ShowModal()
 
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
