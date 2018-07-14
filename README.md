@@ -21,7 +21,7 @@ Installation
 There are the two options to use the SerialMonitor:
 
 - install using pip and run from Python or an entry-point script,
-- run directly from source by setting ```SerialMonitor/__init__.py``` as an executable using ```chmod +x __init__py```. and then executing it as ```./__init__.py```.
+- run directly from source by importing the SerialMonitor modul and calling main()
 
 Pip is, by far, the easiest option that should also install all the dependencies
 for you. In order to install with pip, just download the newest ``tar.gz``
@@ -46,8 +46,9 @@ SerialMonitor and the newest wxWidgets afterwards):
 
 ```	apt-get install libgtk-3-dev libgstreamer-plugins-base0.10-dev libwebkit-dev libwebkitgtk-3.0-dev```
 
-If all else fails, wxWidgets and other Python dependencies can be installed with
-pip individually as well:
+If all else fails, install the above mentioned dependencies manually. Then,
+wxWidgets and other Python dependencies can be installed with pip individually
+as well:
 
 ```sudo pip3 install pySerial```
 ```sudo pip3 install wxPython```
@@ -64,7 +65,9 @@ you can run the monitor from Python terminal (or put the call in a script yourse
 >>> import SerialMonitor
 >>> SerialMonitor.main()
 
-Tested on Ubuntu 16.04 with Pyton 2.7.12.
+There is a script ```runSerialMonitor``` provided which does exactly the above.
+
+Tested on Ubuntu 16.04 with Pyton 2.7.12 and on Ubuntu 14.04 with Python 3.4.3.
 
 GUI maintenance
 ================
@@ -75,8 +78,8 @@ It does not support the newest wxWidgets, it seems, but to install it on Ubuntu 
     add-apt-repository ppa:wxformbuilder/release
     apt-get install wxformbuilder
 
-**Further GUI edits should be done manually** on the ``serialMonitorBaseclasses.py``, until
-wxformbuilder starts to support wx 4. Exporting the code from the form builder right now
+**Further GUI edits should be done manually** on the ```serialMonitorBaseclasses.py```, until
+wxFormBuilder starts to support wx 4. Exporting the code from the form builder right now
 will break the GUI.
 
 Example
