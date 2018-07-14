@@ -51,6 +51,7 @@ wxWidgets and other Python dependencies can be installed with pip individually
 as well:
 
 ```sudo pip3 install pySerial```
+
 ```sudo pip3 install wxPython```
 
 Running
@@ -79,7 +80,7 @@ It does not support the newest wxWidgets, it seems, but to install it on Ubuntu 
     apt-get install wxformbuilder
 
 **Further GUI edits should be done manually** on the ```serialMonitorBaseclasses.py```, until
-wxFormBuilder starts to support wx 4. Exporting the code from the form builder right now
+wxFormBuilder starts to support wx4. Exporting the code from the form builder right now
 will break the GUI.
 
 Example
