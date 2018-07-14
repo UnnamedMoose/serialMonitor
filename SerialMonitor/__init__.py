@@ -420,7 +420,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             if self.checkConnection():
                 # send the message; need to pass as a regular string to avoid compatibility
                 # issues with new wxWidgets which use unicode string formatting
-                self.arduinoSerialConnection.write(r'{}'.format(msg))
+                self.arduinoSerialConnection.write(msg.encode('utf-8')) # Convert msg to bytes, then pass to serial.
                 # move to the end of the text control in case the user has clicked somewhere
                 # since the last message
                 self.logFileTextControl.MoveEnd()
