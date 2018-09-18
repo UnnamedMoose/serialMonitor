@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 Copyright (c) 2017-2018 Artur K. Lidtke and Aleksander Lidtke
