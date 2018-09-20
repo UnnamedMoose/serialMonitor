@@ -37,3 +37,32 @@ def getActivePorts():
 			pass
 
 	return ports
+
+def checkConnection(port):
+	""" Check the serial port connection.
+
+	Arguments
+	---------
+		port (serial.Serial) - instance of a port interface.
+
+	Returns
+	---------
+		(bool) - status of the port (True means good connection)
+	""""
+
+	# first try a handshake
+	testMsgGood = True
+	try:
+		port.inWaiting()
+	except:
+		testMsgGood = False
+
+	# then try serial.Serial methods to establish if port's okay
+	if not port or not port.readable() or not testMsgGood:
+		# close the connection if something went wrong
+		port.close()
+
+		# reutrn status
+		return False
+	else:
+		return True
