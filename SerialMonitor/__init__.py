@@ -59,7 +59,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
-#TODO Attach the handler to the logger later, when user specifies the level.
+# TODO Attach the handler to the logger later, when user specifies the level.
 
 class PleaseReconnectDialog(wx.Dialog):
     def __init__(self,parent):
@@ -405,9 +405,9 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         """ Sends a message to the port via the serial conneciton, but also takes
         care of any additional operations, such as logging the message.
 
-        Parameters
-        ----------
-            msg - string representation of the message to be sent
+        Arguments
+        ---------
+            msg (string) - representation of the message to be sent
         """
 
         # make sure the connection has not been broken
@@ -419,27 +419,14 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 self.currentSerialConnection.write(msg.encode('utf-8'))
                 # log in the main display box
                 self.writeToTextBox(msg)
-                # # move to the end of the text control in case the user has clicked somewhere
-                # TODO remove
-                # # since the last message
-                # self.logFileTextControl.MoveEnd()
-                # # add it to the port comms logger
-                # self.logFileTextControl.WriteText(r'OUT: {}'.format(msg))
-                # # scroll to the end
-                # self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
                 # Log the sent command.
                 logger.info(r'OUT: {}'.format(msg))
 
     def parseOutputs(self):
         """ Check the serial connection for any inbound information and read it if it's
-        available. Pass it to the respective handlers accordingly  """
+        available. Pass it to the respective handlers accordingly. """
         if self.portOpen:
             if self.checkConnection():
-                # TODO remove
-                # use a non-blocking approach to read the data - this is generally
-                # much less disruptive to the overall program flow than relying
-                # on Serial.readline()
-
                 # if incoming bytes are waiting to be read from the serial input buffer
                 if (self.currentSerialConnection.inWaiting()>0):
                     # Read the bytes.
@@ -464,20 +451,12 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                             lines = self.serialOutputBuffer.rpartition("\n")
                             if lines[0]:
                                 for line in lines[0].split("\n"):
-                                    # TODO remove
-                                    # go to the end of the console in case the user has moved the cursor
-                                    # self.logFileTextControl.MoveEnd()
                                     # Write the line to text ctrl and log it.
-                                    # self.logFileTextControl.WriteText(line+"\n")
                                     self.writeToTextBox(msg+"\n")
                                     logger.info(line)
 
                                     # TODO TODO TODO
                                     # this is where one can pass the outputs to where they need to go
-
-                                # TODO remove
-                                # scroll the output txtControl to the bottom
-                                # self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
                                 # Keep the remaining output in buffer if there are no EOL characters
                                 # in it. This is useful if only part of a message was received on last
@@ -504,34 +483,18 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                         for c in dataStr:
                             try:
                                 self.writeToTextBox(chr(c))
-                                # TODO remove
-                                # self.logFileTextControl.MoveEnd()
-                                # Change byte into corresponding char.
-                                # self.logFileTextControl.WriteText(chr(c))
 
                             # c was an unknown byte - replace it.
                             except UnicodeDecodeError:
                                 self.writeToTextBox(u'\uFFFD')
-                                # TODO remove
-                                # self.logFileTextControl.MoveEnd()
-                                # self.logFileTextControl.WriteText(u'\uFFFD')
 
                         # Log the line that we received.
                         logger.info(str(dataStr))
-                        # Scroll the output txtControl to the bottom
-                        # TODO remove
-                        # self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
 
                     else: # Hex output.
                         # Hex encoding of the datStr.
                         hexDataStr = ":".join("{}".format(hex(c)) for c in dataStr)
                         self.writeToTextBox(hexDataStr)
-                        # TODO remove
-                        # self.logFileTextControl.MoveEnd()
-                        # self.logFileTextControl.WriteText(hexDataStr)
-                        # Log the line that we received.
-                        # Scroll the output txtControl to the bottom
-                        # self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
                         logger.info(hexDataStr)
 
     def notifyToReconnect(self):
