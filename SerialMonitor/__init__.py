@@ -351,29 +351,38 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def checkConnection(self):
         """ Checks if there is anything still connected to the port. """
 
-        testMsgGood = True
-        try:
-            self.currentSerialConnection.inWaiting()
-        except:
-            testMsgGood = False
+        # testMsgGood = True
+        # try:
+        #     self.currentSerialConnection.inWaiting()
+        # except:
+        #     testMsgGood = False
+        #
+        # if not self.currentSerialConnection or not self.currentSerialConnection.readable() or not testMsgGood:
+        #     logger.error('Lost port connection.')
+        #     wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
+        #           wx.OK | wx.ICON_ERROR)
+        #
+        #     # close the connection
+        #     self.currentSerialConnection.close()
+        #     self.currentSerialConnection = 0
+        #     self.portOpen = False
+        #     self.currentPort = 'None'
+        #
+        #     # check what ports are open - will set choice as None if current port has been lost
+        #     self.updatePorts()
 
-        if not self.currentSerialConnection or not self.currentSerialConnection.readable() or not testMsgGood:
-            logger.error('Lost port connection.')
-            wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
-                  wx.OK | wx.ICON_ERROR)
-
-            # close the connection
-            self.currentSerialConnection.close()
+        if not commsInterface.checkConnection(self.currentSerialConnection):
+            # handle all internal nuts and bolts related to the connection
+            # by setting them back to defaults.
             self.currentSerialConnection = 0
             self.portOpen = False
             self.currentPort = 'None'
-
-            # check what ports are open - will set choice as None if current port has been lost
+            # let the user know something's wrong
+            logger.error('Lost port connection.')
+            wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
+            wx.OK | wx.ICON_ERROR)
+            # check what ports are open once the user has had a chance to react.
             self.updatePorts()
-
-            return False
-        else:
-            return True
 
     def writeToTextBox(self, msg, prepend=""):
         """ Log a message inside the main text display window.
