@@ -314,14 +314,15 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
         # check what ports are currently open
         ports = commsInterface.getActivePorts()
-        if len(ports)<=0 and not suppressWarn:
-            wx.MessageBox('Check connection and port permissions.','Found no active ports!',wx.ICON_ERROR,None)
+        if len(ports) <= 0 and not suppressWarn:
+            wx.MessageBox('Check connection and port permissions.', 'Found no active ports!',
+                wx.ICON_ERROR, None)
 
         # save current selection
         currentSelection = self.portChoice.GetStringSelection()
 
         # Remove the current options
-        for i in range(len(self.portChoice.GetStrings())-1,-1,-1):
+        for i in range(len(self.portChoice.GetStrings())-1, -1, -1):
             self.portChoice.Delete(i)
 
         # add the newly found ports
@@ -350,27 +351,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     def checkConnection(self):
         """ Checks if there is anything still connected to the port. """
-
-        # TODO remove
-        # testMsgGood = True
-        # try:
-        #     self.currentSerialConnection.inWaiting()
-        # except:
-        #     testMsgGood = False
-        #
-        # if not self.currentSerialConnection or not self.currentSerialConnection.readable() or not testMsgGood:
-        #     logger.error('Lost port connection.')
-        #     wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
-        #           wx.OK | wx.ICON_ERROR)
-        #
-        #     # close the connection
-        #     self.currentSerialConnection.close()
-        #     self.currentSerialConnection = 0
-        #     self.portOpen = False
-        #     self.currentPort = 'None'
-        #
-        #     # check what ports are open - will set choice as None if current port has been lost
-        #     self.updatePorts()
 
         if not commsInterface.checkConnection(self.currentSerialConnection):
             # handle all internal nuts and bolts related to the connection
@@ -483,11 +463,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                             # Sometimes rubbish gets fed to the serial port.
                             # Print the error in the console to let the user know something's not right.
                             self.writeToTextBox("!!!   ERROR DECODING ASCII STRING   !!!\n", colour=(255,0,0))
-                            # TODO remove
-                            # self.logFileTextControl.MoveEnd()
-                            # self.logFileTextControl.BeginTextColour((255,0,0))
-                            # self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
-                            # self.logFileTextControl.EndTextColour()
                             # Log the error and the line that caused it.
                             logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
