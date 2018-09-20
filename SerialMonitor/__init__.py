@@ -361,7 +361,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             # let the user know something's wrong
             logger.error('Lost port connection.')
             wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
-            wx.OK | wx.ICON_ERROR)
+                wx.OK | wx.ICON_ERROR)
             # check what ports are open once the user has had a chance to react.
             self.updatePorts()
 
@@ -423,71 +423,95 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         available. Pass it to the respective handlers accordingly. """
         if self.portOpen:
             if self.checkConnection():
-                # if incoming bytes are waiting to be read from the serial input buffer
-                if (self.currentSerialConnection.inWaiting() > 0):
-                    # Read the bytes.
-                    dataStr = self.currentSerialConnection.read(
-                        self.currentSerialConnection.inWaiting() )
+                # # if incoming bytes are waiting to be read from the serial input buffer
+                # if (self.currentSerialConnection.inWaiting() > 0):
+                #     # Read the bytes.
+                #     dataStr = self.currentSerialConnection.read(
+                #         self.currentSerialConnection.inWaiting() )
+                #
+                #     # Pass to the buffer and convert from binary array to ASCII
+                #     # and split the output on EOL characters, unless the user
+                #     # desires to see the raw, undecoded output. In such case,
+                #     # don't expect end of line characters and replace unkown bytes
+                #     # with unicode replacement character. Also allow the user
+                #     # to see the hex code of the received bytes, not unicode.
+                #
+                #     # Processed and (arguably) nicely formatted output.
+                #     if not self.rawOutputCheckbox.GetValue():
+                #         try:
+                #             self.serialOutputBuffer += dataStr.decode('ascii')
+                #
+                #             # extract any full lines and log them - there can be more than
+                #             # one, depending on the loop frequencies on either side of the
+                #             # serial conneciton
+                #             lines = self.serialOutputBuffer.rpartition("\n")
+                #             if lines[0]:
+                #                 for line in lines[0].split("\n"):
+                #                     # Write the line to text ctrl and log it.
+                #                     self.writeToTextBox(msg+"\n")
+                #                     logger.info(line)
+                #
+                #                     # TODO TODO TODO
+                #                     # this is where one can pass the outputs to where they need to go
+                #
+                #                 # Keep the remaining output in buffer if there are no EOL characters
+                #                 # in it. This is useful if only part of a message was received on last
+                #                 # buffer update.
+                #                 self.serialOutputBuffer = lines[2]
+                #
+                #         except UnicodeDecodeError as uderr:
+                #             # Sometimes rubbish gets fed to the serial port.
+                #             # Print the error in the console to let the user know something's not right.
+                #             self.writeToTextBox("!!!   ERROR DECODING ASCII STRING   !!!\n", colour=(255,0,0))
+                #             # Log the error and the line that caused it.
+                #             logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
+                #
+                #     # Raw but not formatted output.
+                #     elif not self.hexOutputCheckbox.GetValue():
+                #         # Just print whatever came out of the serial port.
+                #         # Writing unicode(dataStr) to logFileTextControl will sometimes
+                #         # skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
+                #         # Write one character at the time and repalce invalid bytes manually.
+                #         for c in dataStr:
+                #             try:
+                #                 self.writeToTextBox(chr(c))
+                #
+                #             # c was an unknown byte - replace it.
+                #             except UnicodeDecodeError:
+                #                 self.writeToTextBox(u'\uFFFD')
+                #
+                #         # Log the line that we received.
+                #         logger.info(str(dataStr))
+                #
+                #     else: # Hex output.
+                #         # Hex encoding of the datStr.
+                #         hexDataStr = ":".join("{}".format(hex(c)) for c in dataStr)
+                #         self.writeToTextBox(hexDataStr)
+                #         logger.info(hexDataStr)
 
-                    # Pass to the buffer and convert from binary array to ASCII
-                    # and split the output on EOL characters, unless the user
-                    # desires to see the raw, undecoded output. In such case,
-                    # don't expect end of line characters and replace unkown bytes
-                    # with unicode replacement character. Also allow the user
-                    # to see the hex code of the received bytes, not unicode.
+                # see in what format to request data
+                if not self.rawOutputCheckbox.GetValue():
+                    outputFormat = "formatted"
+                elif not self.hexOutputCheckbox.GetValue():
+                    outputFormat = "raw"
+                else:
+                    outputFormat = "hex"
 
-                    # Processed and (arguably) nicely formatted output.
-                    if not self.rawOutputCheckbox.GetValue():
-                        try:
-                            self.serialOutputBuffer += dataStr.decode('ascii')
+                # grab the outputs
+                output, self.serialOutputBuffer, warningSummary = commsInterface.grabPortOutput(
+                    self.currentSerialConnection, self.serialOutputBuffer, outputFormat)
 
-                            # extract any full lines and log them - there can be more than
-                            # one, depending on the loop frequencies on either side of the
-                            # serial conneciton
-                            lines = self.serialOutputBuffer.rpartition("\n")
-                            if lines[0]:
-                                for line in lines[0].split("\n"):
-                                    # Write the line to text ctrl and log it.
-                                    self.writeToTextBox(msg+"\n")
-                                    logger.info(line)
+                # log and print received data in the text box
+                # FIXME Artur: need to double check that it will all print ok, may need to
+                #   convert raw outputs to strings and/or split at \n characters.
+                self.writeToTextBox(output)
+                logger.info(output)
 
-                                    # TODO TODO TODO
-                                    # this is where one can pass the outputs to where they need to go
-
-                                # Keep the remaining output in buffer if there are no EOL characters
-                                # in it. This is useful if only part of a message was received on last
-                                # buffer update.
-                                self.serialOutputBuffer = lines[2]
-
-                        except UnicodeDecodeError as uderr:
-                            # Sometimes rubbish gets fed to the serial port.
-                            # Print the error in the console to let the user know something's not right.
-                            self.writeToTextBox("!!!   ERROR DECODING ASCII STRING   !!!\n", colour=(255,0,0))
-                            # Log the error and the line that caused it.
-                            logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
-
-                    # Raw but not formatted output.
-                    elif not self.hexOutputCheckbox.GetValue():
-                        # Just print whatever came out of the serial port.
-                        # Writing unicode(dataStr) to logFileTextControl will sometimes
-                        # skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
-                        # Write one character at the time and repalce invalid bytes manually.
-                        for c in dataStr:
-                            try:
-                                self.writeToTextBox(chr(c))
-
-                            # c was an unknown byte - replace it.
-                            except UnicodeDecodeError:
-                                self.writeToTextBox(u'\uFFFD')
-
-                        # Log the line that we received.
-                        logger.info(str(dataStr))
-
-                    else: # Hex output.
-                        # Hex encoding of the datStr.
-                        hexDataStr = ":".join("{}".format(hex(c)) for c in dataStr)
-                        self.writeToTextBox(hexDataStr)
-                        logger.info(hexDataStr)
+                # handle warnings
+                if len(warningSummary) > 0:
+                    for w in warningSummary:
+                        self.writeToTextBox("{}, check the log!\n".format(w), colour=(255,0,0))
+                        logger.warning(warningSummary[w])
 
     def notifyToReconnect(self):
         """ Notify the user to reconnect to the serial port for the changes they've
