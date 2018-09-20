@@ -12,7 +12,7 @@ def getActivePorts():
 
 	Returns
     -------
-    (list) a list of strings denoting names of open ports.
+    	(list) a list of strings denoting names of open ports.
 	"""
 
 	if sys.platform.startswith('win'):
@@ -48,7 +48,7 @@ def checkConnection(port):
 	Returns
 	---------
 		(bool) - status of the port (True means good connection)
-	""""
+	"""
 
 	# first try a handshake
 	testMsgGood = True

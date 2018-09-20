@@ -351,6 +351,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def checkConnection(self):
         """ Checks if there is anything still connected to the port. """
 
+        # TODO remove
         # testMsgGood = True
         # try:
         #     self.currentSerialConnection.inWaiting()
@@ -384,7 +385,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             # check what ports are open once the user has had a chance to react.
             self.updatePorts()
 
-    def writeToTextBox(self, msg, prepend=""):
+    def writeToTextBox(self, msg, prepend="", colour=(0,0,0)):
         """ Log a message inside the main text display window.
 
         Refreshes the position inside the text box, writes the message, and sets
@@ -399,16 +400,22 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         ---------
             prepend (string, default empty) - how to prepend the message, useful
                 for highlighting e.g. in/out directions, etc.
+            colour (int tuple, len=3m default=(0,0,0)) - RGB colour of text
         """
 
         # move the cursor to the end of the box
         self.logFileTextControl.MoveEnd()
+        # set colour if needed
+        if colour != (0,0,0):
+            self.logFileTextControl.BeginTextColour(colour)
         # add the message
         if len(prepend) > 0:
             prepend = "{}: ".format(prepend)
         self.logFileTextControl.WriteText(r'{}{}'.format(prepend, msg))
         # scroll to the end of the box
         self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
+        # re-set colour to default
+        self.logFileTextControl.EndTextColour()
 
     def sendMessage(self, msg):
         """ Sends a message to the port via the serial conneciton, but also takes
@@ -437,9 +444,9 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         if self.portOpen:
             if self.checkConnection():
                 # if incoming bytes are waiting to be read from the serial input buffer
-                if (self.currentSerialConnection.inWaiting()>0):
+                if (self.currentSerialConnection.inWaiting() > 0):
                     # Read the bytes.
-                    dataStr=self.currentSerialConnection.read(
+                    dataStr = self.currentSerialConnection.read(
                         self.currentSerialConnection.inWaiting() )
 
                     # Pass to the buffer and convert from binary array to ASCII
@@ -474,12 +481,13 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
                         except UnicodeDecodeError as uderr:
                             # Sometimes rubbish gets fed to the serial port.
-                            # NOTE Artur: should we integrate this with the writeToTextBox method?
                             # Print the error in the console to let the user know something's not right.
-                            self.logFileTextControl.MoveEnd()
-                            self.logFileTextControl.BeginTextColour((255,0,0))
-                            self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
-                            self.logFileTextControl.EndTextColour()
+                            self.writeToTextBox("!!!   ERROR DECODING ASCII STRING   !!!\n", colour=(255,0,0))
+                            # TODO remove
+                            # self.logFileTextControl.MoveEnd()
+                            # self.logFileTextControl.BeginTextColour((255,0,0))
+                            # self.logFileTextControl.WriteText("!!!   ERROR DECODING ASCII STRING   !!!\n")
+                            # self.logFileTextControl.EndTextColour()
                             # Log the error and the line that caused it.
                             logger.warning('UnicodeDecodeError :( with string:\n\t{}'.format(dataStr))
 
