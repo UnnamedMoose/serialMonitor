@@ -1,4 +1,4 @@
-#!/usr/bin/python3.5
+#!/usr/bin/python3
 """This is a first test that attempts to send messages from a remote terminal
 to the SerialMonitor without using actual hardware.
 

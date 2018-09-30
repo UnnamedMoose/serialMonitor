@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+## Script for running serial monitor directly without installing via pio
+
+import SerialMonitor
+SerialMonitor.main()
