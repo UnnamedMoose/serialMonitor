@@ -55,12 +55,67 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
-	def testValidOutputFormats(self):
+	def testRaiseVE_InalidOutputFormat(self):
 		""" Should raise VE for invalid outputFormat. """
 		self.assertRaises(ValueError,sm.commsInterface.grabPortOutput,
 			self.fixture,"DummyBuff","invalidFormat")
 
-	#TODO check output types
+	def testDefaultRetType(self):
+		""" Should return string, string, dict when there's no message. """
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
+														 "formatted")
+		self.assertIs(type(formattedOutput),tuple,
+			msg='Output not a tuple.')
+		self.assertIs(type(formattedOutput[0]),str,
+			msg='output not a string.')
+		self.assertIs(type(formattedOutput[1]),str,
+			msg='outputBuffer not a string.')
+		self.assertIs(type(formattedOutput[2]),dict,
+			msg='warningSummary not a dict.')
+
+	def testFormattedRetType(self):
+		""" Should return string, string, dict for formatted output. """
+		self.fixture.write(b'HelloWorld') # The message cna be whatever, not testing it.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
+														 "formatted")
+		self.assertIs(type(formattedOutput),tuple,
+			msg='Output not a tuple.')
+		self.assertIs(type(formattedOutput[0]),str,
+			msg='output not a string.')
+		self.assertIs(type(formattedOutput[1]),str,
+			msg='outputBuffer not a string.')
+		self.assertIs(type(formattedOutput[2]),dict,
+			msg='warningSummary not a dict.')
+
+
+	def testRawRetType(self):
+		""" Should return string, string, dict for raw output. """
+		self.fixture.write(b'HelloWorld') # The message cna be whatever, not testing it.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
+														 "raw")
+		self.assertIs(type(formattedOutput),tuple,
+			msg='Output not a tuple.')
+		self.assertIs(type(formattedOutput[0]),str,
+			msg='output not a string.')
+		self.assertIs(type(formattedOutput[1]),str,
+			msg='outputBuffer not a string.')
+		self.assertIs(type(formattedOutput[2]),dict,
+			msg='warningSummary not a dict.')
+
+	def testHexRetType(self):
+		""" Should return string, string, dict for hex output. """
+		self.fixture.write(b'HelloWorld') # The message cna be whatever, not testing it.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
+														 "hex")
+		self.assertIs(type(formattedOutput),tuple,
+			msg='Output not a tuple.')
+		self.assertIs(type(formattedOutput[0]),str,
+			msg='output not a string.')
+		self.assertIs(type(formattedOutput[1]),str,
+			msg='outputBuffer not a string.')
+		self.assertIs(type(formattedOutput[2]),dict,
+			msg='warningSummary not a dict.')
+	
 	#TODO assert raises if outputFormat not in ['formatted', 'raw', 'hex']
 	#TODO add some checks on other inputs
 	#TODO test is port .inWaiting==0, should return the input outputBuffer
