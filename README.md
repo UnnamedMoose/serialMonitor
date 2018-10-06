@@ -83,6 +83,14 @@ It does not support the newest wxWidgets, it seems, but to install it on Ubuntu 
 wxFormBuilder starts to support wx4. Exporting the code from the form builder right now
 will break the GUI.
 
+Notes on building most recent wxFormBuilder 3.8.1:
+- Added '''#define __GXX_ABI_VERSION 1002''' in src/maingui.h to avoid conflicts between
+    wxWidgets versions (<https://github.com/eranif/codelite/issues/825>).
+- Changed '''wxFALLTHROUGH''' to '''[[fallthrough]]''' in src/utils/typeconv.cpp
+    to fix more wxWidgets compatibility issues.
+- Updated GNU C++ compiler to ensure C++14 compatibility (gcc 6.4.0).
+- Had to use '''git submodule update --init''' to fix ticpp.h file being missing
+
 Example
 ========
 
