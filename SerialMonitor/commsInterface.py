@@ -95,7 +95,7 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 	warningSummary = {}
 	# formatted output
 	output = ""
-	
+
 	# check requested formatting
 	if outputFormat not in ['formatted', 'raw', 'hex']:
 		raise ValueError("Requested output format {} not supported.".format(outputFormat))
