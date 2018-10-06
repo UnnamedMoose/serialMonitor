@@ -58,7 +58,7 @@ def checkConnection(port):
 		testMsgGood = False
 
 	# then try serial.Serial methods to establish if port's okay
-	if not port or not port.readable() or not testMsgGood:
+	if (not port) or (not port.readable()) or (not testMsgGood):
 		# close the connection if something went wrong
 		port.close()
 
