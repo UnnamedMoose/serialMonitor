@@ -75,7 +75,7 @@ class Tests(unittest.TestCase):
 
 	def testFormattedRetType(self):
 		""" Should return string, string, dict for formatted output. """
-		self.fixture.write(b'HelloWorld') # The message cna be whatever, not testing it.
+		self.fixture.write(b'HelloWorld') # The message can be whatever, not testing it.
 		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
 														 "formatted")
 		self.assertIs(type(formattedOutput),tuple,
@@ -87,10 +87,9 @@ class Tests(unittest.TestCase):
 		self.assertIs(type(formattedOutput[2]),dict,
 			msg='warningSummary not a dict.')
 
-
 	def testRawRetType(self):
 		""" Should return string, string, dict for raw output. """
-		self.fixture.write(b'HelloWorld') # The message cna be whatever, not testing it.
+		self.fixture.write(b'HelloWorld') # The message can be whatever, not testing it.
 		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
 														 "raw")
 		self.assertIs(type(formattedOutput),tuple,
@@ -104,7 +103,7 @@ class Tests(unittest.TestCase):
 
 	def testHexRetType(self):
 		""" Should return string, string, dict for hex output. """
-		self.fixture.write(b'HelloWorld') # The message cna be whatever, not testing it.
+		self.fixture.write(b'HelloWorld') # The message can be whatever, not testing it.
 		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
 														 "hex")
 		self.assertIs(type(formattedOutput),tuple,
@@ -115,25 +114,84 @@ class Tests(unittest.TestCase):
 			msg='outputBuffer not a string.')
 		self.assertIs(type(formattedOutput[2]),dict,
 			msg='warningSummary not a dict.')
-	
-	#TODO assert raises if outputFormat not in ['formatted', 'raw', 'hex']
+
+	def testHexGoodByte_0x00(self):
+		""" Send a valid hex message. """
+		self.fixture.write(b'\x00')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a string representation of hex.
+		self.assertEqual(rawOutput[0],hex(0x00),msg='Expected 0x00.')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
+	def testHexGoodByte_0x01(self):
+		""" Send a valid hex message. """
+		self.fixture.write(b'\x01')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a string representation of hex.
+		self.assertEqual(rawOutput[0],hex(0x01),msg='Expected 0x01.')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
+	def testHexGoodByte_0x41(self):
+		""" Send a valid hex message, ASCII 'A'. """
+		self.fixture.write(b'\x41')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a string representation of hex.
+		self.assertEqual(rawOutput[0],hex(0x41),msg="Expected 0x41 ('A').")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
+	def testRawGoodByte_0x41(self):
+		""" Send a valid raw message, ASCII 'A'. """
+		self.fixture.write(b'\x41')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a string representation of hex.
+		self.assertEqual(rawOutput[0],'A',msg="Expected 'A'.")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
 	#TODO add some checks on other inputs
 	#TODO test is port .inWaiting==0, should return the input outputBuffer
 	#TODO test hex encoding with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
 		# 3) valid and invalid numbers,
-		# 4) empty dataStr.
+		# 4) empty dataStr,
+		# 5) sequences of many bytes.
 	#TODO test raw output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
 		# 3) valid and invalid numbers,
-		# 4) empty dataStr.
+		# 4) empty dataStr,
+		# 5) sequences of many bytes.
 	#TODO test formatted output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
 		# 3) valid and invalid numbers,
 		# 4) empty dataStr,
-		# 5) valid and invalid formatitng of the dataStr.
+		# 5) valid and invalid formatitng of the dataStr,
+		# 5) sequences of many bytes.
+	#TODO should try sending various representations of the same bytes to make sure they're all understood.
 if __name__ == '__main__':
 	unittest.main()
