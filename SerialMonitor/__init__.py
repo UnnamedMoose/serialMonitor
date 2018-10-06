@@ -1,21 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
-Copyright (c) 2017 Artur K. Lidtke
+Copyright (c) 2017-2018 Artur K. Lidtke and Aleksander Lidtke
 ---------------
 
 Graphical interface program that allows the user to communicate with an
 Arduino or other piece of hardware via a serial port.
 
-Requires wxWidgets 2.8 or newer. To install on Ubuntu Linux:
-    apt-get install python-wxgtk2.8 python-wxtools wx2.8-i18n libwxgtk2.8-dev libgtk2.0-dev
-
 GUI built with wxFormbuilder 3.5.1 (https://github.com/wxFormBuilder/wxFormBuilder)
 To install on Ubuntu Linux:
     add-apt-repository ppa:wxformbuilder/release
     apt-get install wxformbuilder
-
-Tested on Ubuntu 14.04 with Pyton 2.7.6
 
 ---------------
 Distributed under the MIT licence:
@@ -47,15 +42,19 @@ import serial
 import glob
 import logging
 
-# Set the module version consistent with pip freeze.
+# Set the module version consistent with pip freeze. Handle exception if didn't
+# install with pip
 import pkg_resources as pkg
-__version__=pkg.get_distribution("SerialMonitor").version.lstrip('-').rstrip('-')
+try:
+    __version__ = pkg.get_distribution("SerialMonitor").version.lstrip('-').rstrip('-')
+except:
+    __version__ = "unknown_version"
 
 # Create a logger for the application.
-logger=logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
+logger = logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
 logger.setLevel(logging.DEBUG)
-handler=logging.StreamHandler() # Will output to STDERR.
-formatter=logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler() # Will output to STDERR.
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
@@ -68,11 +67,11 @@ class PleaseReconnectDialog(wx.Dialog):
         wx.Dialog.__init__(self,parent,-1,'Please reconnect',size=(300,120))
         self.CenterOnScreen(wx.BOTH)
 
-        okButton=wx.Button(self,wx.ID_OK,'OK')
+        okButton = wx.Button(self,wx.ID_OK,'OK')
         okButton.SetDefault()
-        text=wx.StaticText(self,-1,'Please reconnect to the serial port for the changes to take effect.')
+        text = wx.StaticText(self,-1,'Please reconnect to the serial port for the changes to take effect.')
 
-        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(text,1,wx.ALIGN_CENTER|wx.TOP,10)
         vbox.Add(okButton,1,wx.ALIGN_CENTER|wx.BOTTOM,10)
         self.SetSizer(vbox)
@@ -85,18 +84,18 @@ class serialDetailsDialog( baseClasses.serialDetailsDialog ):
         """
         # initialise the underlying object
         baseClasses.serialDetailsDialog.__init__( self, parent )
-        
+
         # Add the selections to the dropdown menus (defined by the pySerial module).
         for stopBit in serial.Serial.STOPBITS:
             self.stopBitsChoice.Append(str(stopBit))
             self.stopBitsChoices.append(stopBit)
         self.stopBitsChoice.SetSelection(self.stopBitsChoices.index(currentStopBits))
-        
+
         for key, val in serial.PARITY_NAMES.items():
             self.parityChoice.Append(val)
             self.parityChoices.append(key)
         self.parityChoice.SetSelection(self.parityChoices.index(currentParity))
-        
+
         for byteSize in serial.Serial.BYTESIZES:
             self.byteSizeChoice.Append(str(byteSize))
             self.byteSizeChoices.append(byteSize)
@@ -113,7 +112,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         already defined. """
         # initialise the underlying object
         baseClasses.mainFrame.__init__( self, None, __version__ )
-        
+
         # File logger name.
         self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
 
@@ -126,15 +125,15 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         # set default values
         self.readDelay = int(self.readDelayTxtCtrl.GetValue())
         self.BaudRate = int(self.baudRateTxtCtrl.GetValue())
-        
+
         # No raw output so hexOutputCheckbox checkbox won't change anything.
         # Disable it not to confuse the users.
         self.hexOutputCheckbox.Enable(False)
-        
+
         # Current serial connection details.
-        self.currentStopBits=serial.STOPBITS_ONE
-        self.currentParity=serial.PARITY_NONE
-        self.currentByteSize=serial.EIGHTBITS
+        self.currentStopBits = serial.STOPBITS_ONE
+        self.currentParity = serial.PARITY_NONE
+        self.currentByteSize = serial.EIGHTBITS
 
         # initialise the timing function for receiving the data from the serial port at a specific interval
         self.parseOutputsTimer.Start(int(self.readDelay))
@@ -249,7 +248,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def onClearConsole(self, event):
     	""" Clear the output/input console """
     	self.logFileTextControl.Clear()
-    	
+
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
         if self.fileLoggerName is None:
@@ -272,7 +271,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         		self.fileLoggerName=None # Reset.
         	else: # The checkbox should still be checked if we don't stop logging.
         		self.fileLogCheckbox.SetValue(True)
-    
+
     def onRawOutputTicked(self, event):
     	""" Raw output checkbox status defines whether hex output can also be
     	enabled or not. Grey it out when it won't affect the program not to
@@ -288,13 +287,14 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     	""" Edit the more fine details of the serial connection, like the parity
     	or the stopbits. """
     	logger.debug('Attempting to edit serial connection details.')
-    	serialDialog = serialDetailsDialog(self,self.currentStopBits, # Main frame is the parent of this.
-    		self.currentParity,self.currentByteSize)
+        # Main frame is the parent of this.
+    	serialDialog = serialDetailsDialog(self, self.currentStopBits,
+    		self.currentParity, self.currentByteSize)
     	result = serialDialog.ShowModal() # Need a user to click OK or cancel.
     	if result == wx.ID_OK: # User selected new settings so change the current defaults.
-    	    self.currentStopBits=serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()]
-    	    self.currentParity=serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
-    	    self.currentByteSize=serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
+    	    self.currentStopBits = serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()]
+    	    self.currentParity = serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
+    	    self.currentByteSize = serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
     	    logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
     	        self.currentStopBits,self.currentParity,self.currentByteSize))
     	    # Tell the user to reconnect for changes to take effect.
@@ -336,7 +336,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def updatePorts(self,suppressWarn=False):
         """ Checks the list of open serial ports and updates the internal list
         and the options shown in the dropdown selection menu.
-        
+
         Args
         -----
         suppressWarn (bool): whether to suppress showing a wx.MessageBox with
@@ -445,7 +445,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                     # Read the bytes.
                     dataStr=self.arduinoSerialConnection.read(
                         self.arduinoSerialConnection.inWaiting() )
-                    
+
                     # Pass to the buffer and convert from binary array to ASCII
                     # and split the output on EOL characters, unless the user
                     # desires to see the raw, undecoded output. In such case,
