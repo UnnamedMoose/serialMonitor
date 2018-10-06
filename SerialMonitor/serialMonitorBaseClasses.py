@@ -76,7 +76,7 @@ class mainFrame ( wx.Frame ):
 
 		bSizer2.Add( self.hexOutputCheckbox, 0, wx.ALL, 5 )
 
-		self.fileLogCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Hex output", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.fileLogCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.fileLogCheckbox.SetToolTip( u"Tick to stream the log output to a chosen file." )
 
 		bSizer2.Add( self.fileLogCheckbox, 0, wx.ALL, 5 )
@@ -181,5 +181,113 @@ class mainFrame ( wx.Frame ):
 
 	def onEditSerialPort( self, event ):
 		event.Skip()
+
+
+###########################################################################
+## Class serialDetailsDialog
+###########################################################################
+
+class serialDetailsDialog ( wx.Dialog ):
+
+	def __init__( self, parent ):
+		wx.Dialog.__init__ ( self, parent, id = wx.ID_ANY, title = u"Edit serial connection details", pos = wx.DefaultPosition, size = wx.Size( 300,250 ), style = wx.DEFAULT_DIALOG_STYLE )
+
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
+
+		bSizer4 = wx.BoxSizer( wx.VERTICAL )
+
+		bSizer5 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText5 = wx.StaticText( self, wx.ID_ANY, u"Stop bits", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText5.Wrap( -1 )
+
+		bSizer5.Add( self.m_staticText5, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		bSizer5.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		stopBitsChoiceChoices = []
+		self.stopBitsChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, stopBitsChoiceChoices, 0 )
+		self.stopBitsChoice.SetSelection( 0 )
+		bSizer5.Add( self.stopBitsChoice, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+		bSizer4.Add( bSizer5, 0, wx.EXPAND, 5 )
+
+		bSizer51 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText51 = wx.StaticText( self, wx.ID_ANY, u"Parity", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText51.Wrap( -1 )
+
+		bSizer51.Add( self.m_staticText51, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		bSizer51.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		parityChoiceChoices = []
+		self.parityChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, parityChoiceChoices, 0 )
+		self.parityChoice.SetSelection( 0 )
+		bSizer51.Add( self.parityChoice, 1, wx.ALL|wx.EXPAND, 5 )
+
+
+		bSizer4.Add( bSizer51, 0, wx.EXPAND, 5 )
+
+		bSizer52 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.m_staticText52 = wx.StaticText( self, wx.ID_ANY, u"Byte size (bits)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText52.Wrap( -1 )
+
+		bSizer52.Add( self.m_staticText52, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		bSizer52.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		byteSizeChoiceChoices = []
+		self.byteSizeChoice = wx.Choice( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, byteSizeChoiceChoices, 0 )
+		self.byteSizeChoice.SetSelection( 0 )
+		bSizer52.Add( self.byteSizeChoice, 1, wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+
+		bSizer4.Add( bSizer52, 0, wx.EXPAND, 5 )
+
+		self.m_staticline1 = wx.StaticLine( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer4.Add( self.m_staticline1, 0, wx.EXPAND |wx.ALL, 5 )
+
+		bSizer13 = wx.BoxSizer( wx.VERTICAL )
+
+
+		bSizer13.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		bSizer11 = wx.BoxSizer( wx.HORIZONTAL )
+
+
+		bSizer11.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.okButton = wx.Button( self, wx.ID_OK, u"Okay", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer11.Add( self.okButton, 0, wx.ALL, 5 )
+
+		self.cancelButton = wx.Button( self, wx.ID_CANCEL, u"Cancel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer11.Add( self.cancelButton, 0, wx.ALL, 5 )
+
+
+		bSizer11.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+
+		bSizer13.Add( bSizer11, 1, wx.EXPAND, 5 )
+
+
+		bSizer13.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+
+		bSizer4.Add( bSizer13, 1, wx.EXPAND, 5 )
+
+
+		self.SetSizer( bSizer4 )
+		self.Layout()
+
+		self.Centre( wx.BOTH )
+
+	def __del__( self ):
+		pass
 
 

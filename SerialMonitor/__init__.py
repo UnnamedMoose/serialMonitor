@@ -68,13 +68,13 @@ class PleaseReconnectDialog(wx.Dialog):
         wx.Dialog.__init__(self,parent,-1,'Please reconnect',size=(300,120))
         self.CenterOnScreen(wx.BOTH)
 
-        okButton = wx.Button(self,wx.ID_OK,'OK')
+        okButton = wx.Button(self, wx.ID_OK, 'OK')
         okButton.SetDefault()
-        text = wx.StaticText(self,-1,'Please reconnect to the serial port for the changes to take effect.')
+        text = wx.StaticText(self, -1, 'Please reconnect to the serial port for the changes to take effect.')
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(text,1,wx.ALIGN_CENTER|wx.TOP,10)
-        vbox.Add(okButton,1,wx.ALIGN_CENTER|wx.BOTTOM,10)
+        vbox.Add(text, 1, wx.ALIGN_CENTER|wx.TOP, 10)
+        vbox.Add(okButton, 1, wx.ALIGN_CENTER|wx.BOTTOM, 10)
         self.SetSizer(vbox)
 
 class serialDetailsDialog( baseClasses.serialDetailsDialog ):
@@ -85,6 +85,11 @@ class serialDetailsDialog( baseClasses.serialDetailsDialog ):
         """
         # initialise the underlying object
         baseClasses.serialDetailsDialog.__init__( self, parent )
+
+        # create bespoke fields for holding the vailable choices
+        self.stopBitsChoices = []
+        self.parityChoices = []
+        self.byteSizeChoices = []
 
         # Add the selections to the dropdown menus (defined by the pySerial module).
         for stopBit in serial.Serial.STOPBITS:
@@ -112,8 +117,8 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         """ Create the main frame, deriving from a baseline object which has all the panels, buttons, etc.
         already defined. """
         # initialise the underlying object
-        baseClasses.mainFrame.__init__( self, None, __version__ )
-
+        baseClasses.mainFrame.__init__(self, None)
+        
         # File logger name.
         self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
 
