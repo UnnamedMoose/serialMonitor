@@ -95,15 +95,15 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 	warningSummary = {}
 	# formatted output
 	output = ""
+	
+	# check requested formatting
+	if outputFormat not in ['formatted', 'raw', 'hex']:
+		raise ValueError("Requested output format {} not supported.".format(outputFormat))
 
 	# if incoming bytes are waiting to be read from the serial input buffer
 	if (port.inWaiting() > 0):
 		# Read the bytes.
 		dataStr = port.read(port.inWaiting())
-
-		# check requested formatting
-		if outputFormat not in ['formatted', 'raw', 'hex']:
-			raise ValueError("Requested output format {} not supported.".format(outputFormat))
 
 		# Pass to the buffer and convert from binary array to \n-separated ASCII,
 		# unless the user desires to see the raw, undecoded output. In such case,
@@ -153,5 +153,5 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 		else:
 			# Hex encoding of the datStr.
 			output = ":".join("{}".format(hex(c)) for c in dataStr)
-
+#TODO for raw and hex output, outputBuffer makes no sense.
 	return output, outputBuffer, warningSummary
