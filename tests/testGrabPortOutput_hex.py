@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 """ Test the SerialMonitor.grabPortOutput without using actual hardware.
+Focus on the hex outputFormat as well as default return values and input errors.
 
 .. module:: SerialMonitor
    :platform: Unix, Windows
@@ -60,10 +61,39 @@ class Tests(unittest.TestCase):
 		self.assertRaises(ValueError,sm.commsInterface.grabPortOutput,
 			self.fixture,"DummyBuff","invalidFormat")
 
-	def testDefaultRetType(self):
-		""" Should return string, string, dict when there's no message. """
-		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,"DummyBuff",
-														 "formatted")
+	def testDefaultRetType_formatted(self):
+		""" Should return string, string, dict when there's no message.
+		For formatted outputFormat"""
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff',
+														 'formatted')
+		self.assertIs(type(formattedOutput),tuple,
+			msg='Output not a tuple.')
+		self.assertIs(type(formattedOutput[0]),str,
+			msg='output not a string.')
+		self.assertIs(type(formattedOutput[1]),str,
+			msg='outputBuffer not a string.')
+		self.assertIs(type(formattedOutput[2]),dict,
+			msg='warningSummary not a dict.')
+
+	def testDefaultRetType_raw(self):
+		""" Should return string, string, dict when there's no message.
+		For raw outputFormat. """
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff',
+														 'raw')
+		self.assertIs(type(formattedOutput),tuple,
+			msg='Output not a tuple.')
+		self.assertIs(type(formattedOutput[0]),str,
+			msg='output not a string.')
+		self.assertIs(type(formattedOutput[1]),str,
+			msg='outputBuffer not a string.')
+		self.assertIs(type(formattedOutput[2]),dict,
+			msg='warningSummary not a dict.')
+
+	def testDefaultRetType_hex(self):
+		""" Should return string, string, dict when there's no message.
+		For hex outputFormat. """
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff',
+														 'hex')
 		self.assertIs(type(formattedOutput),tuple,
 			msg='Output not a tuple.')
 		self.assertIs(type(formattedOutput[0]),str,
@@ -119,13 +149,13 @@ class Tests(unittest.TestCase):
 		""" Send a valid hex message. """
 		self.fixture.write(b'\x00')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(rawOutput[0],hex(0x00),msg='Expected 0x00.')
+		self.assertEqual(hexOutput[0],hex(0x00),msg='Expected 0x00.')
 		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
@@ -133,13 +163,13 @@ class Tests(unittest.TestCase):
 		""" Send a valid hex message. """
 		self.fixture.write(b'\x01')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(rawOutput[0],hex(0x01),msg='Expected 0x01.')
+		self.assertEqual(hexOutput[0],hex(0x01),msg='Expected 0x01.')
 		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
@@ -147,13 +177,13 @@ class Tests(unittest.TestCase):
 		""" Send a valid hex message, ASCII 'A'. """
 		self.fixture.write(b'\x41')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(rawOutput[0],hex(0x41),msg="Expected 0x41 ('A').")
+		self.assertEqual(hexOutput[0],hex(0x41),msg="Expected 0x41 ('A').")
 		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
