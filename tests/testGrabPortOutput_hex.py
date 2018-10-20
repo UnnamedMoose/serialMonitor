@@ -187,12 +187,30 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
+	def testHexGoodByte_fullASCIITable(self):
+		""" Send a valid hex message, one valid ASCII byte at a time. """
+		for i in range(0,128): # From 0x00 to 0x7F.
+			# Avoid implicit casting in the serial module - need to send bytes.
+			# Easiest to convert int i to ASCII and then to bytes.
+			self.fixture.write(bytes(chr(i),'ASCII'))
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+			#print(hexOutput[0],i) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation of hex.
+			self.assertEqual(hexOutput[0],hex(i),msg='Expected {}.'.format(hex(i)))
+			# 'hex' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
 	#TODO add some checks on other inputs
 	#TODO test is port .inWaiting==0, should return the input outputBuffer
 	#TODO test hex encoding with:
-		# 1) valid and invalid ASCII characters,
+		# 1) invalid ASCII characters, (unicode will do)
 		# 2) valid and invalid unicode characters,
-		# 3) valid and invalid numbers,
+		# 3) valid and invalid numbers, (just unicode will test a sufficient range of ints)
 		# 4) empty dataStr,
 		# 5) sequences of many bytes.
 	#TODO test formatted output with:
