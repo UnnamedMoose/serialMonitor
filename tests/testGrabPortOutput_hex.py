@@ -205,12 +205,72 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
+	def testHexGoodByte_nonASCIIInts(self):
+		""" Valid hex message - one integer above the ASCII range at a time. """
+		# Hex bytes, expected results of the monitor and their decimal
+		# representations up to 255 - getting them programmatically is a bit of
+		# a pain, so use https://www.rapidtables.com/convert/number/ascii-hex-bin-dec-converter.html
+		goodHex=[b'\x80',b'\x81',b'\x82',b'\x8A',b'\x8B',b'\x8F',b'\x9F',b'\xA0',
+			b'\xA1',b'\xC8',b'\xF0',b'\xFE',b'\xFF']
+		goodAns=['0x80','0x81','0x82','0x8a','0x8b','0x8f','0x9f','0xa0','0xa1',
+			'0xc8','0xf0','0xfe',
+			'0xff'] # All letters will be lower case - same numbers, though.
+		goodDec=[128,129,130,138,139,143,159,160,161,200,240,254,255]
+		for i in range(len(goodDec)): # 0x80 to 0xFF, i.e. no longer ASCII but still one byte.
+			self.fixture.write(goodHex[i])
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+			# print(hexOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation of hex.
+			self.assertEqual(hexOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			# 'hex' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
+	#TODO finish the test that sends longer integers of many bytes.
+	# For this range, this converter is better: https://www.rapidtables.com/convert/number/decimal-to-hex.html
+	# def testHexGoodByte_twoByteInt(self):
+	# 	""" Valid hex message - one two-byte integer at a time. """
+	# 	for i in range(256,1000): # 0x100 (256) to 0xFFFF (65535), no longer ASCII.
+	# 		# Avoid implicit casting in the serial module - need to send bytes.
+	# 		#TODO how to convert these integers to bytes? Probably use a limited subset.
+	# 		self.fixture.write(bytes(chr(i),'ASCII'))
+	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+	# 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+	# 		#print(hexOutput[0],i) # To eyeball the results.
+	# 		# Should just get whatever we've put in, but in a string representation of hex.
+	# 		self.assertEqual(hexOutput[0],hex(i),msg='Expected {}.'.format(hex(i)))
+	# 		# 'hex' option should leave outputBuffer unchanged.
+	# 		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+	# 		# Should have no warnings.
+	# 		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+	# 		# The port should be empty now.
+	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+
+			#TODO there might be a bug with this range of integers.
+			# For 259=0x103='ă', get '0x10:0x33' from the SerialMonitor.
+			#>>> hex(259)
+			#'0x103'
+			#>>> chr(259)
+			#'ă'
+			#>>> bytes(chr(259),'utf-8')
+			#b'\xc4\x83'
+			#>>> sm.commsInterface.grabPortOutput(fixture,'DummyBuff','hex')
+			#('', 'DummyBuff', {})
+			#>>> fixture.write(b'\x103')
+			#2
+			#>>> sm.commsInterface.grabPortOutput(fixture,'DummyBuff','hex')
+			#('0x10:0x33', 'DummyBuff', {})
+
 	#TODO add some checks on other inputs
 	#TODO test is port .inWaiting==0, should return the input outputBuffer
 	#TODO test hex encoding with:
-		# 1) invalid ASCII characters, (unicode will do)
-		# 2) valid and invalid unicode characters,
-		# 3) valid and invalid numbers, (just unicode will test a sufficient range of ints)
+		# 1) invalid ASCII characters, - DONE, ints larger than 127
+		# 2) valid and invalid unicode characters, - one byte (up to 255) are done
+		# 3) valid and invalid numbers, - one byte (up to 255) are done
 		# 4) empty dataStr,
 		# 5) sequences of many bytes.
 	#TODO test formatted output with:
