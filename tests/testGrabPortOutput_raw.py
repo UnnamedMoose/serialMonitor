@@ -44,11 +44,13 @@ class Tests(unittest.TestCase):
 		del self.fixture
 
 	def testEmptyPort(self):
-		""" Port should be empty by default. """
+		""" Port should be empty by default. Only tests the setup, not
+		the commsInterface. """
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
 	def testSimpleMsg(self):
-		""" Try to write and read a simple message. """
+		""" Try to write and read a simple message. Only tests the setup, not
+		the commsInterface. """
 		self.fixture.write(b'HelloWorld')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		# Read more characters than have been sent, trigger timeout.
@@ -89,6 +91,22 @@ class Tests(unittest.TestCase):
 		self.assertIs(type(formattedOutput[2]),dict,
 			msg='warningSummary not a dict.')
 
+	def testHexEmptyMessage(self):
+		""" Send an empty message with hex outputFormat. """
+		notNeeded=self.fixture.read(1) # Empty the port.
+		self.assertEqual(self.fixture.read(1),b'',
+						msg='Need an empty bufferbefore running this test case.')
+		# port.inWaiting will be 0, so grabPortOutput will just proceed to return
+		# the input outputBuffer and the default (empty) output.
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		self.assertEqual(hexOutput[0],'',msg='Expected empty string as output.')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
 	def testRawGoodByte_0x00(self): #TODO
 		""" Send a valid hex message. """
 		self.fixture.write(b'\x00')
@@ -101,7 +119,7 @@ class Tests(unittest.TestCase):
 		# Should have no warnings.
 		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	def testRawGoodByte_0x01(self): #TODO
 		""" Send a valid hex message. """
@@ -115,7 +133,7 @@ class Tests(unittest.TestCase):
 		# Should have no warnings.
 		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	def testRawGoodByte_0x41(self): #TODO
 		""" Send a valid hex message, ASCII 'A'. """
@@ -129,7 +147,7 @@ class Tests(unittest.TestCase):
 		# Should have no warnings.
 		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	def testRawGoodByte_0x41(self):
 		""" Send a valid raw message, ASCII 'A'. """
@@ -143,16 +161,16 @@ class Tests(unittest.TestCase):
 		# Should have no warnings.
 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	#TODO add some checks on other inputs
-	#TODO test is port .inWaiting==0, should return the input outputBuffer
+	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
 		# 3) valid and invalid numbers,
-		# 4) empty dataStr,
-		# 5) sequences of many bytes.
+		# 4) empty dataStr, - (port.inWaiting==0) DONE
+		# 5) sequences of many bytes, incl. long integers.
 	#TODO test formatted output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
