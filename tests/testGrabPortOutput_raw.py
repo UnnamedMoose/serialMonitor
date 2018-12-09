@@ -146,14 +146,14 @@ class Tests(unittest.TestCase):
 			# Easiest to convert int i to ASCII and then to bytes.
 			self.fixture.write(bytes(chr(i),'ASCII'))
 			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-			# print(i,hexOutput[0],bytes(chr(i),'ASCII'),chr(i)) # To eyeball the results.
+			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(i,rawOutput[0],bytes(chr(i),'ASCII'),chr(i)) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation.
-			self.assertEqual(hexOutput[0],chr(i),msg='Expected {}.'.format(chr(i)))
+			self.assertEqual(rawOutput[0],chr(i),msg='Expected {}.'.format(chr(i)))
 			# 'raw' option should leave outputBuffer unchanged.
-			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
-			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
@@ -171,16 +171,41 @@ class Tests(unittest.TestCase):
 		for i in range(len(goodDec)): # 0x80 to 0xFF, i.e. no longer ASCII but still one byte.
 			self.fixture.write(goodHex[i])
 			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-			# print(hexOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
+			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(rawOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation.
-			self.assertEqual(hexOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
 			# 'raw' option should leave outputBuffer unchanged.
-			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
-			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testRawGoodBytes_longInts(self):
+		""" Valid raw message - two-byte integers. Expect string representation
+		of both bytes. """
+		for i in range(256,65535,500): # 0x0100 to 0xFFFF.
+			sentBytes=i.to_bytes(2, byteorder='big', signed=False)
+			self.fixture.write(sentBytes)
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(i,rawOutput[0],sentBytes,''.join(chr(x) for x in sentBytes)) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation
+			# of the individual bytes we've sent.
+			self.assertEqual(rawOutput[0],''.join(chr(x) for x in sentBytes),
+				msg='Expected {}.'.format(''.join(chr(x) for x in sentBytes)))
+			# 'raw' option should leave outputBuffer unchanged.
+			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+			#TODO some of the transmissions time out or something? Hence large gaps:
+			#15256 ; b'd\x9c' d
+			#26256 f b'\xe1\x9c' á
+			#58256 ã b'\xe3\x90' ã
 
 	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
@@ -188,8 +213,8 @@ class Tests(unittest.TestCase):
 		# 2) valid unicode characters,                                                      DONE
 		# 3) valid and invalid numbers,                                                     DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                           DONE
-		# 5) sequences of many bytes with \0x00 in various places,
-		# 6) long integers.
+		# 5) sequences of many bytes with \0x00 in various places,                          
+		# 6) long integers,
 		# 7) replacing non-unicode bytes in case of UnicodeDecodeError
 	#TODO test formatted output with:
 		# 1) valid and invalid ASCII characters,
