@@ -260,14 +260,8 @@ class Tests(unittest.TestCase):
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places.                  DONE
 		# 6) long integers -                                                        FAIL
-	#TODO test formatted output with:
-		# 1) valid and invalid ASCII characters,
-		# 2) valid and invalid unicode characters,
-		# 3) valid and invalid numbers,
-		# 4) empty dataStr,
-		# 5) valid and invalid formatitng of the dataStr,
-		# 5) sequences of many bytes.
-	#TODO should try sending various representations of the same bytes to make sure they're all understood.
-	
+	#TODO should try sending various representations of the same bytes to make      _
+	    # sure they're all understood.
+
 if __name__ == '__main__':
 	unittest.main()

@@ -207,24 +207,17 @@ class Tests(unittest.TestCase):
 			#26256 f b'\xe1\x9c' á
 			#58256 ã b'\xe3\x90' ã
 
-	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
+	#TODO port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
-		# 1) valid and invalid ASCII characters,                                            DONE
-		# 2) valid unicode characters,                                                      DONE
-		# 3) valid and invalid numbers,                                                     DONE
-		# 4) empty dataStr, - (port.inWaiting==0)                                           DONE
-		# 5) sequences of many bytes with \0x00 in various places,
-		# 6) long integers,
-		# 7) replacing non-unicode bytes in case of UnicodeDecodeError
-	#TODO test formatted output with:
-		# 1) valid and invalid ASCII characters,
-		# 2) valid and invalid unicode characters,
-		# 3) valid and invalid numbers,
-		# 4) empty dataStr,
-		# 5) valid and invalid formatitng of the dataStr,
-		# 5) sequences of many bytes.
-	#TODO should try sending various representations of the same bytes to make              DONE
+		# 1) valid and invalid ASCII characters,                                    DONE
+		# 2) valid unicode characters,                                              DONE
+		# 3) valid and invalid numbers,                                             DONE
+		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
+		# 5) sequences of many bytes with \0x00 in various places,                  _
+		# 6) long integers,                                                         _
+		# 7) replacing non-unicode bytes in case of UnicodeDecodeError              _
+	#TODO should try sending various representations of the same bytes to make      DONE
 	    # sure they're all understood.
-	
+
 if __name__ == '__main__':
 	unittest.main()

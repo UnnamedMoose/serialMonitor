@@ -207,15 +207,15 @@ class Tests(unittest.TestCase):
 			#26256 f b'\xe1\x9c' á
 			#58256 ã b'\xe3\x90' ã
 
-	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr)
+	#TODO port.inWaiting==0, should return the input outputBuffer - (empty dataStr) _
 	#TODO test formatted output with:
-		# 1) valid and invalid ASCII characters,
-		# 2) valid and invalid unicode characters,
-		# 3) valid and invalid numbers,
-		# 4) empty dataStr,
-		# 5) valid and invalid formatitng of the dataStr,
-		# 5) sequences of many bytes.
-	#TODO should try sending various representations of the same bytes to make
+		# 1) valid and invalid ASCII characters,                                    _
+		# 2) valid and invalid unicode characters,                                  _
+		# 3) valid and invalid numbers,                                             _
+		# 4) empty dataStr,                                                         _
+		# 5) valid and invalid formatitng of the dataStr,                           _
+		# 5) sequences of many bytes.                                               _
+	#TODO should try sending various representations of the same bytes to make      _
 	    # sure they're all understood.
 
 if __name__ == '__main__':
