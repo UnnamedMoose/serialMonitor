@@ -218,8 +218,8 @@ class Tests(unittest.TestCase):
 		# representations - getting them programmatically is a bit of a pain, so
 		#  use https://www.rapidtables.com/convert/number/decimal-to-hex.html
 		# All hex-code letters will be lower case - they're the same numbers as capitals, though.
-		goodHex=[b'\x103']
-		goodAns=['0x103']
+		goodHex=[b'\x01\x03'] #TODO using int.to_bytes here might help to send the right bytes.
+		goodAns=['0x01:0x03'] #TODO verify if this is correct: AssertionError: '0x1:0x3' != '0x01:0x03'
 		goodDec=[259]
 
 		for i in range(len(goodDec)): # 0x103 to 0xFFFF, two byte integers.
@@ -268,6 +268,6 @@ class Tests(unittest.TestCase):
 		# 5) valid and invalid formatitng of the dataStr,
 		# 5) sequences of many bytes.
 	#TODO should try sending various representations of the same bytes to make sure they're all understood.
-	#TODO add some checks on other inputs - port and outputBuffer
+	
 if __name__ == '__main__':
 	unittest.main()

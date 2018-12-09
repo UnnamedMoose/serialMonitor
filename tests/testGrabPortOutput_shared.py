@@ -151,5 +151,7 @@ class Tests(unittest.TestCase):
 		self.assertIs(type(formattedOutput[2]),dict,
 			msg='warningSummary not a dict.')
 
+	#TODO add some checks on other inputs - port and outputBuffer
+
 if __name__ == '__main__':
 	unittest.main()
