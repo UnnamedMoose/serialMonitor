@@ -44,85 +44,108 @@ class Tests(unittest.TestCase):
 		del self.fixture
 
 	def testRawEmptyMessage(self):
-		""" Send an empty message with hex outputFormat. """
+		""" Send an empty message with raw outputFormat. """
 		notNeeded=self.fixture.read(1) # Empty the port.
 		self.assertEqual(self.fixture.read(1),b'',
-						msg='Need an empty bufferbefore running this test case.')
+						msg='Need an empty buffer before running this test case.')
 		# port.inWaiting will be 0, so grabPortOutput will just proceed to return
 		# the input outputBuffer and the default (empty) output.
-		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-		self.assertEqual(hexOutput[0],'',msg='Expected empty string as output.')
-		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-		# Should have no warnings.
-		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
-		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-
-	def testRawGoodByte_0x00(self): #TODO
-		""" Send a valid hex message. """
-		self.fixture.write(b'\x00')
-		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
-		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(hexOutput[0],hex(0x00),msg='Expected 0x00.')
-		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-		# Should have no warnings.
-		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
-		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-
-	def testRawGoodByte_0x01(self): #TODO
-		""" Send a valid hex message. """
-		self.fixture.write(b'\x01')
-		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
-		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(hexOutput[0],hex(0x01),msg='Expected 0x01.')
-		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-		# Should have no warnings.
-		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
-		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-
-	def testRawGoodByte_0x41(self): #TODO
-		""" Send a valid hex message, ASCII 'A'. """
-		self.fixture.write(b'\x41')
-		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
-		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(hexOutput[0],hex(0x41),msg="Expected 0x41 ('A').")
-		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-		# Should have no warnings.
-		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
-		# The port should be empty now.
-		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-
-	def testRawGoodByte_0x41(self):
-		""" Send a valid raw message, ASCII 'A'. """
-		self.fixture.write(b'\x41')
-		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(rawOutput[0],'A',msg="Expected 'A'.")
-		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[0],'',msg='Expected empty string as output.')
+		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-	#TODO add some checks on other inputs
+	def testRawGoodByte_0(self):
+		""" Send a single raw byte with two different representations of '0'. """
+		self.fixture.write(b'\x00')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'\x00',msg='Expected \x00.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		self.fixture.write(b'0')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'0',msg="Expected '0'.")
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testRawGoodByte_1(self):
+		""" Send a single raw byte with two different representations of '1'. """
+		self.fixture.write(b'\x01')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'\x01',msg='Expected \\x01.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		self.fixture.write(b'1')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'1',msg="Expected '1'.")
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testRawGoodByte_0x41(self):
+		""" Send a single raw byte with two different representations of
+		ASCII 'A' = 0x41. """
+		self.fixture.write(b'\x41')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').")
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		self.fixture.write(b'A')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'A',msg="Expected 'A'.")
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
 	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
 		# 3) valid and invalid numbers,
-		# 4) empty dataStr, - (port.inWaiting==0) DONE
-		# 5) sequences of many bytes, incl. long integers.
+		# 4) empty dataStr, - (port.inWaiting==0)                                           DONE
+		# 5) sequences of many bytes with \0x00 in various places,
+		# 6) long integers.
 	#TODO test formatted output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
@@ -130,6 +153,8 @@ class Tests(unittest.TestCase):
 		# 4) empty dataStr,
 		# 5) valid and invalid formatitng of the dataStr,
 		# 5) sequences of many bytes.
-	#TODO should try sending various representations of the same bytes to make sure they're all understood.
+	#TODO should try sending various representations of the same bytes to make              DONE
+	    # sure they're all understood.
+	#TODO add some checks on other inputs - port and outputBuffer
 if __name__ == '__main__':
 	unittest.main()
