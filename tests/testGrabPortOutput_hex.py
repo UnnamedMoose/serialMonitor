@@ -145,27 +145,64 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-	#TODO finish the test that sends longer integers of many bytes.
-	# For this range, this converter is better: https://www.rapidtables.com/convert/number/decimal-to-hex.html
-	# def testHexGoodByte_twoByteInt(self):
-	# 	""" Valid hex message - one two-byte integer at a time. """
-	# 	for i in range(256,1000): # 0x100 (256) to 0xFFFF (65535), no longer ASCII.
-	# 		# Avoid implicit casting in the serial module - need to send bytes.
-	# 		#TODO how to convert these two-byte integers to bytes? Probably use a limited test subset instead of programmatically converting them.
-	# 		self.fixture.write(bytes(chr(i),'ASCII'))
-	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
-	# 		#print(hexOutput[0],i) # To eyeball the results.
-	# 		# Should just get whatever we've put in, but in a string representation of hex.
-	# 		self.assertEqual(hexOutput[0],hex(i),msg='Expected {}.'.format(hex(i)))
-	# 		# 'hex' option should leave outputBuffer unchanged.
-	# 		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 		# Should have no warnings.
-	# 		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
-	# 		# The port should be empty now.
-	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+	def testHex_ByteSequence(self):
+		""" Valid hex message - various sequences of bytes with 0x00 in various
+		places. """
+		# Below are hex bytes sequences and the corresponding expected results of the
+		# monitor - getting them programmatically is a bit of a pain, so use
+		# https://www.rapidtables.com/convert/number/decimal-to-hex.html
+		# All hex-code letters will be lower case - they're the same numbers as
+		# capitals, though.
+		# Individual bytes will be separated by a colon (':') in the output.
+		# 0x00 will be output as 0x0.
+		goodHex=[b'\x80\x81\x82',b'\x80\x00\x82',b'\x80\x82\x00',b'\x00\x80\x82',
+				b'\x80\xA0\x00\x82\xA1',b'\x80\x82\xA1\x00',b'\x00\xA1\x80\x82',
+				b'\x00\xAF\x80\x82']
+		goodAns=['0x80:0x81:0x82','0x80:0x0:0x82','0x80:0x82:0x0','0x0:0x80:0x82',
+				'0x80:0xa0:0x0:0x82:0xa1','0x80:0x82:0xa1:0x0','0x0:0xa1:0x80:0x82',
+				'0x0:0xaf:0x80:0x82']
 
-			#TODO there might be a bug with this range of integers.
+		for i in range(len(goodHex)):
+			# Avoid implicit casting in the serial module - need to send bytes.
+			self.fixture.write(goodHex[i])
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+			# print(hexOutput[0],goodAns[i]) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation of hex.
+			self.assertEqual(hexOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			# 'hex' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testHexGoodBytes_twoByteInt(self):
+		""" Valid hex message - one two-byte integer at a time. """
+		# Below are hex bytes, expected results of the monitor and their decimal
+		# representations - getting them programmatically is a bit of a pain, so
+		#  use https://www.rapidtables.com/convert/number/decimal-to-hex.html
+		# All hex-code letters will be lower case - they're the same numbers as capitals, though.
+		goodHex=[b'\x103']
+		goodAns=['0x103']
+		goodDec=[259]
+
+		for i in range(len(goodDec)): # 0x103 to 0xFFFF, two byte integers.
+			# Avoid implicit casting in the serial module - need to send bytes.
+			self.fixture.write(goodHex[i])
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+			print(hexOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation of hex.
+			self.assertEqual(hexOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			# 'hex' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+			#TODO there is a bug with long integers.
 			# For 259=0x103='ă', get '0x10:0x33' from the SerialMonitor.
 			#>>> hex(259)
 			#'0x103'
@@ -180,14 +217,14 @@ class Tests(unittest.TestCase):
 			#>>> sm.commsInterface.grabPortOutput(fixture,'DummyBuff','hex')
 			#('0x10:0x33', 'DummyBuff', {})
 
-	#TODO add some checks on other inputs - port and outputBuffer
-	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
+	#TODO port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test hex encoding with:
-		# 1) invalid ASCII characters, - ints larger than 127 - DONE
-		# 2) valid and invalid unicode characters, - one byte (up to 255) - DONE
-		# 3) valid and invalid numbers, - one byte (up to 255) - DONE
-		# 4) empty dataStr, - (port.inWaiting==0) DONE
-		# 5) sequences of many bytes, incl. long integers.
+		# 1) invalid ASCII characters, - ints larger than 127 -                     DONE
+		# 2) valid and invalid unicode characters, - one byte (up to 255) -         DONE
+		# 3) valid and invalid numbers, - one byte (up to 255) -                    DONE
+		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
+		# 5) sequences of many bytes with \0x00 in various places.                  DONE
+		# 6) long integers -                                                        FAIL
 	#TODO test formatted output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
@@ -196,5 +233,6 @@ class Tests(unittest.TestCase):
 		# 5) valid and invalid formatitng of the dataStr,
 		# 5) sequences of many bytes.
 	#TODO should try sending various representations of the same bytes to make sure they're all understood.
+	#TODO add some checks on other inputs - port and outputBuffer
 if __name__ == '__main__':
 	unittest.main()
