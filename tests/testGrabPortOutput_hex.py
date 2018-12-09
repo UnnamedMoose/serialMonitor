@@ -177,6 +177,41 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testHexByteSequence_fullASCIITable(self):
+		""" Send the entire ASCII table in one go. """
+		previousMaxDiff=self.maxDiff # Only temporarily change the test settings.
+		self.maxDiff=None # Otherwise, the comparison will be truncated.
+		goodHex=[] # All the sent bytes.
+		goodAns='0x0:' # The expected answer.
+
+		# Send the entire sequence, with 0x00 in the beginning, ~middle, and the end.
+		self.fixture.write(b'\x00')
+		for i in range(0,128): # From 0x00 to 0x7F.
+			# Avoid implicit casting in the serial module - need to send bytes.
+			# Easiest to convert int i to ASCII and then to bytes.
+			self.fixture.write(bytes(chr(i),'ASCII'))
+			goodHex.append(bytes(chr(i),'ASCII'))
+			goodAns+=(hex(i)+':')
+			if i==63: # Put some 0x00 in the middle, to mix thing up a bit.
+				self.fixture.write(b'\x00\x00\x00')
+				goodAns+='0x0:0x0:0x0:'
+		self.fixture.write(b'\x00')
+		goodAns+='0x0'
+
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		#print(hexOutput[0],i) # To eyeball the results.
+		# Should just get whatever we've put in, but in a string representation of hex.
+		self.assertEqual(hexOutput[0],goodAns,msg='Expected {}.'.format(goodAns))
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		self.maxDiff=previousMaxDiff # Back to what it was.
+
 	def testHexGoodBytes_twoByteInt(self):
 		""" Valid hex message - one two-byte integer at a time. """
 		# Below are hex bytes, expected results of the monitor and their decimal
