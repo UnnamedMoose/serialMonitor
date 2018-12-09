@@ -65,7 +65,7 @@ class Tests(unittest.TestCase):
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
-		self.assertEqual(rawOutput[0],'\x00',msg='Expected \x00.')
+		self.assertEqual(rawOutput[0],'\x00',msg='Expected \\x00.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -138,14 +138,59 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testRawGoodByte_fullASCIITable(self):
+		""" Send a valid raw message, one valid ASCII byte at a time. Some will
+		be sent and read as hex codes of bytes, others as ASCII characters. """
+		for i in range(0,128): # From 0x00 to 0x7F.
+			# Avoid implicit casting in the serial module - need to send bytes.
+			# Easiest to convert int i to ASCII and then to bytes.
+			self.fixture.write(bytes(chr(i),'ASCII'))
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(i,hexOutput[0],bytes(chr(i),'ASCII'),chr(i)) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation.
+			self.assertEqual(hexOutput[0],chr(i),msg='Expected {}.'.format(chr(i)))
+			# 'raw' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testRawGoodByte_nonASCIIInts(self):
+		""" Valid raw message - one integer above the ASCII range at a time.
+		Also covers extended ASCII range and unicode Latin script codes. """
+		# Below are bytes, expected results of the monitor and their decimal
+		# representations up to 255 - getting them programmatically is a bit of
+		# a pain, so use https://www.rapidtables.com/convert/number/hex-to-ascii.html
+		goodHex=[b'\x80',b'\x81',b'\x82',b'\x8A',b'\x8B',b'\x8F',b'\x9F',b'\xA0',
+			b'\xA1',b'\xC8',b'\xF0',b'\xFE',b'\xFF']
+		goodAns=['\x80','\x81','\x82','\x8a','\x8b','\x8f','\x9f','\xa0','\xa1',
+			'\xc8','\xf0','\xfe','\xff']
+		goodDec=[128,129,130,138,139,143,159,160,161,200,240,254,255]
+		for i in range(len(goodDec)): # 0x80 to 0xFF, i.e. no longer ASCII but still one byte.
+			self.fixture.write(goodHex[i])
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(hexOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation.
+			self.assertEqual(hexOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			# 'raw' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
 	#TODO test is port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
-		# 1) valid and invalid ASCII characters,
-		# 2) valid and invalid unicode characters,
-		# 3) valid and invalid numbers,
+		# 1) valid and invalid ASCII characters,                                            DONE
+		# 2) valid unicode characters,                                                      DONE
+		# 3) valid and invalid numbers,                                                     DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                           DONE
 		# 5) sequences of many bytes with \0x00 in various places,
 		# 6) long integers.
+		# 7) replacing non-unicode bytes in case of UnicodeDecodeError
 	#TODO test formatted output with:
 		# 1) valid and invalid ASCII characters,
 		# 2) valid and invalid unicode characters,
