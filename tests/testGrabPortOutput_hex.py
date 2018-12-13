@@ -79,7 +79,9 @@ class Tests(unittest.TestCase):
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should just get whatever we've put in, but in a string representation of hex.
-		self.assertEqual(hexOutput[0],hex(0x01),msg='Expected 0x01.')
+		#TODO this was tested against hex(0x01), which returns '0x1'. This would cause
+		# problems down the line because of the missing leading zero.
+		self.assertEqual(hexOutput[0],'0x01',msg='Expected 0x01.')
 		# 'hex' option should leave outputBuffer unchanged.
 		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -220,6 +222,13 @@ class Tests(unittest.TestCase):
 		# All hex-code letters will be lower case - they're the same numbers as capitals, though.
 		goodHex=[b'\x01\x03'] #TODO using int.to_bytes here might help to send the right bytes.
 		goodAns=['0x01:0x03'] #TODO verify if this is correct: AssertionError: '0x1:0x3' != '0x01:0x03'
+		#TODO according to the hex-to-decimal converter, the leading zeros in front of 1 and 3 are needed
+		# so the AssertionError is correct. So there might be a problem in the hex option.
+		# Also, it's impossible to create a bute array from 0x1 0x3, whereas 0x01 0x03 works:
+		# >>> bbb=bytearray(b'\x1\x3')
+		# File "<stdin>", line 1
+		# SyntaxError: (value error) invalid \x escape at position 0
+		# bbb=bytearray(b'\x01\x03') # Works.
 		goodDec=[259]
 
 		for i in range(len(goodDec)): # 0x103 to 0xFFFF, two byte integers.
@@ -252,14 +261,14 @@ class Tests(unittest.TestCase):
 			#>>> sm.commsInterface.grabPortOutput(fixture,'DummyBuff','hex')
 			#('0x10:0x33', 'DummyBuff', {})
 
-	#TODO port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
-	#TODO test hex encoding with:
+	#     port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
+	#     test hex encoding with:
 		# 1) invalid ASCII characters, - ints larger than 127 -                     DONE
 		# 2) valid and invalid unicode characters, - one byte (up to 255) -         DONE
 		# 3) valid and invalid numbers, - one byte (up to 255) -                    DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places.                  DONE
-		# 6) long integers -                                                        FAIL
+		#TODO 6) long integers -                                                    FAIL
 	#TODO should try sending various representations of the same bytes to make      _
 	    # sure they're all understood.
 
