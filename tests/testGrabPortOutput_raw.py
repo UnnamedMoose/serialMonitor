@@ -52,6 +52,7 @@ class Tests(unittest.TestCase):
 		# the input outputBuffer and the default (empty) output.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		self.assertEqual(rawOutput[0],'',msg='Expected empty string as output.')
+		self.assertEqual(len(rawOutput[0]),0,msg='Expected zero bytes.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -66,6 +67,7 @@ class Tests(unittest.TestCase):
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x00',msg='Expected \\x00.')
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -78,6 +80,7 @@ class Tests(unittest.TestCase):
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'0',msg="Expected '0'.")
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -86,12 +89,13 @@ class Tests(unittest.TestCase):
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 		i=0
-		b=i.to_bytes(1, byteorder='big', signed=True)
+		b=i.to_bytes(1, byteorder='big', signed=False)
 		self.fixture.write(b)
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x00',msg='Expected \\x00.')
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -106,6 +110,7 @@ class Tests(unittest.TestCase):
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x01',msg='Expected \\x01.')
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -118,6 +123,7 @@ class Tests(unittest.TestCase):
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'1',msg="Expected '1'.")
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -126,12 +132,13 @@ class Tests(unittest.TestCase):
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 		i=1
-		b=i.to_bytes(1, byteorder='big', signed=True)
+		b=i.to_bytes(1, byteorder='big', signed=False)
 		self.fixture.write(b)
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x01',msg='Expected \\x01.')
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -148,6 +155,7 @@ class Tests(unittest.TestCase):
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').")
 		self.assertEqual(rawOutput[0],'A',msg="Expected 'A' (\x41)).") # Both will work.
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -161,6 +169,7 @@ class Tests(unittest.TestCase):
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').")
 		self.assertEqual(rawOutput[0],'A',msg="Expected 'A'.") # Both will work.
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -169,13 +178,14 @@ class Tests(unittest.TestCase):
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 		i=65
-		b=i.to_bytes(1, byteorder='big', signed=True)
+		b=i.to_bytes(1, byteorder='big', signed=False)
 		self.fixture.write(b)
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').") # Both will work.
 		self.assertEqual(rawOutput[0],'A',msg="Expected 'A' (\\x41)).")
+		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -188,13 +198,13 @@ class Tests(unittest.TestCase):
 		be sent and read as hex codes of bytes, others as ASCII characters. """
 		for i in range(0,128): # From 0x00 to 0x7F.
 			# Avoid implicit casting in the serial module - need to send bytes.
-			# Easiest to convert int i to ASCII and then to bytes.
-			self.fixture.write(bytes(chr(i),'ASCII'))
+			self.fixture.write( i.to_bytes(1,byteorder='big',signed=False) )
 			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 			# print(i,rawOutput[0],bytes(chr(i),'ASCII'),chr(i)) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation.
 			self.assertEqual(rawOutput[0],chr(i),msg='Expected {}.'.format(chr(i)))
+			self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 			# 'raw' option should leave outputBuffer unchanged.
 			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
@@ -220,6 +230,7 @@ class Tests(unittest.TestCase):
 			# print(rawOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation.
 			self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
 			# 'raw' option should leave outputBuffer unchanged.
 			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
@@ -239,6 +250,7 @@ class Tests(unittest.TestCase):
 			# of the individual bytes we've sent.
 			self.assertEqual(rawOutput[0],''.join(chr(x) for x in sentBytes),
 				msg='Expected {}.'.format(''.join(chr(x) for x in sentBytes)))
+			self.assertEqual(len(rawOutput[0]),2,msg='Expected two bytes.')
 			# 'raw' option should leave outputBuffer unchanged.
 			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
@@ -270,6 +282,7 @@ class Tests(unittest.TestCase):
 				'\x80\xa0\x00\x82¡','\x80\x82\xa1\x00','\x00\xA1\x80\x82',
 				# '¯'=0xaf=0xAF, all thee representations will work.
 				'\x00¯\x80\x82','\x00\xaf\x00\x00','\x00\x00\xaf\x00']
+		noBytes=[3,3,3,3,5,4,4,4,4,4] # No. expected returned bytes.
 
 		for i in range(len(goodHex)):
 			# Avoid implicit casting in the serial module - need to send bytes.
@@ -279,6 +292,7 @@ class Tests(unittest.TestCase):
 			# print(rawOutput[0],goodAns[i]) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation.
 			self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			self.assertEqual(len(rawOutput[0]),noBytes[i],msg='Expected {} bytes.'.format(noBytes[i]))
 			# 'raw' option should leave outputBuffer unchanged.
 			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
@@ -289,25 +303,27 @@ class Tests(unittest.TestCase):
 	def testRaw_OutOfUnicodeRange(self):
 		""" Raw message - a few valid on the border of unicode range, and one
 		that exceeds the valid range (up to 1 114 111=0x10FFFF). """
-		# Below are hex bytes and the corresponding expected results of
+		# Below are integers and the corresponding expected results of
 		# the monitor - getting them programmatically is a bit of a pain, so use
 		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
 
 		# 0x110000 = 0x10FFFF+1, exceeds unicode range in Python 3:
 		# https://docs.python.org/3/library/functions.html#chr
 		# However, SerialMonitor will convert bytes one at a time so cannot exceed
-		# the valid unicode range.
-		goodHex=[b'\x10FFFE',b'\x10FFFF',b'\x110000']
-		goodAns=['\x10FFFE','\x10FFFF','\x110000']
+		# the valid unicode range even if we send a larger integer.
+		goodDec=[0x10FFFE,0x10FFFF,0x110000]
+		goodAns=['\x10\xFF\xFE','\x10\xFF\xFF','\x11\x00\x00']
 
-		for i in range(len(goodHex)):
+		for i in range(len(goodDec)):
 			# Avoid implicit casting in the serial module - need to send bytes.
-			self.fixture.write(goodHex[i])
+			sentBytes=goodDec[i].to_bytes(3,byteorder='big',signed=False)
+			self.fixture.write(sentBytes)
 			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 			# print(rawOutput[0],goodAns[i]) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation.
 			self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes')
 			# 'raw' option should leave outputBuffer unchanged.
 			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 			# Should have no warnings.
@@ -315,8 +331,8 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-	#     port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
-	#     test raw output with:
+	# port.inWaiting==0, should return the input outputBuffer - (empty dataStr)     DONE
+	# Test raw output with:
 		# 1) valid and invalid ASCII characters,                                    DONE
 		# 2) valid unicode characters,                                              DONE
 		# 3) valid and invalid numbers,                                             DONE
@@ -325,9 +341,9 @@ class Tests(unittest.TestCase):
 		# 6) long integers,                                                         DONE
 		# 7)TODO replacing non-unicode bytes in case of UnicodeDecodeError              BUG!!!!
 		#TODO the bytes will be changed one by one so can't exceed unicode range
-	#     should try sending various representations of the same bytes to make      DONE
+	# Should try sending various representations of the same bytes to make          DONE
 	    # sure they're all understood.
-	#TODO should check the length of the returned bytes to make sure we've got everything.
+	# Should check the length of the returned bytes.                                DONE
 
 if __name__ == '__main__':
 	unittest.main()
