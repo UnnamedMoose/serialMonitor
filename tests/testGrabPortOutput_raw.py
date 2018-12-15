@@ -190,7 +190,6 @@ class Tests(unittest.TestCase):
 			self.fixture.write(sentBytes)
 			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-			# print(i,rawOutput[0],sentBytes,''.join(chr(x) for x in sentBytes)) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation
 			# of the individual bytes we've sent.
 			self.assertEqual(rawOutput[0],''.join(chr(x) for x in sentBytes),
@@ -202,10 +201,16 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-			#TODO some of the transmissions time out or something? Hence large gaps:
-			#15256 ; b'd\x9c' d
-			#26256 f b'\xe1\x9c' á
-			#58256 ã b'\xe3\x90' ã
+			# Printing certain bytes will cause the terminal to stop refreshing,
+			# but the tests will continue. It isn't clear why that's the case,
+			# it takes place for these integers: 15256 and 26256. The first byte
+			# of these integers (0x3B and 0x66) gets printed correctly as ';' and
+			# 'f'. But the second byte isn't printed. In both cases, it's some
+			# weird symbol, like a star (0x90) or a box (0x90). So it's probably
+			# an issue with the terminal, not this test or SerialMonitor.
+			# print(i,''.join(chr(x) for x in sentBytes),rawOutput[0],
+			# 	sentBytes,sentBytes.hex()) # To eyeball the results.
+
 
 	#TODO port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
@@ -214,7 +219,7 @@ class Tests(unittest.TestCase):
 		# 3) valid and invalid numbers,                                             DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places,                  _
-		# 6) long integers,                                                         _
+		# 6) long integers,                                                         DONE
 		# 7) replacing non-unicode bytes in case of UnicodeDecodeError              _
 	#TODO should try sending various representations of the same bytes to make      DONE
 	    # sure they're all understood.
