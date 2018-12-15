@@ -60,7 +60,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	def testRawGoodByte_0(self):
-		""" Send a single raw byte with two different representations of '0'. """
+		""" Send a single raw byte with three different representations of '0'. """
 		self.fixture.write(b'\x00')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
@@ -85,8 +85,22 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+		i=0
+		b=i.to_bytes(1, byteorder='big', signed=True)
+		self.fixture.write(b)
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'\x00',msg='Expected \\x00.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	def testRawGoodByte_1(self):
-		""" Send a single raw byte with two different representations of '1'. """
+		""" Send a single raw byte with three different representations of '1'. """
 		self.fixture.write(b'\x01')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
@@ -111,14 +125,29 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+		i=1
+		b=i.to_bytes(1, byteorder='big', signed=True)
+		self.fixture.write(b)
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'\x01',msg='Expected \\x01.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	def testRawGoodByte_0x41(self):
-		""" Send a single raw byte with two different representations of
-		ASCII 'A' = 0x41. """
+		""" Send a single raw byte with three different representations of
+		ASCII 'A' = 0x41 = 65. """
 		self.fixture.write(b'\x41')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').")
+		self.assertEqual(rawOutput[0],'A',msg="Expected 'A' (\x41)).") # Both will work.
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -130,13 +159,29 @@ class Tests(unittest.TestCase):
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get whatever we've put in, but in a raw string representation.
-		self.assertEqual(rawOutput[0],'A',msg="Expected 'A'.")
+		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').")
+		self.assertEqual(rawOutput[0],'A',msg="Expected 'A'.") # Both will work.
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		i=65
+		b=i.to_bytes(1, byteorder='big', signed=True)
+		self.fixture.write(b)
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should just get whatever we've put in, but in a raw string representation.
+		self.assertEqual(rawOutput[0],'\x41',msg="Expected \\x41 ('A').") # Both will work.
+		self.assertEqual(rawOutput[0],'A',msg="Expected 'A' (\\x41)).")
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
 	def testRawGoodByte_fullASCIITable(self):
 		""" Send a valid raw message, one valid ASCII byte at a time. Some will
@@ -271,17 +316,18 @@ class Tests(unittest.TestCase):
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	#     port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
-	#TODO test raw output with:
+	#     test raw output with:
 		# 1) valid and invalid ASCII characters,                                    DONE
 		# 2) valid unicode characters,                                              DONE
 		# 3) valid and invalid numbers,                                             DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places,                  DONE
 		# 6) long integers,                                                         DONE
-		# 7) replacing non-unicode bytes in case of UnicodeDecodeError              _
-		#TODO the bytes will be changed one by one so can't exceed unicode range = BUG.
-	#TODO should try sending various representations of the same bytes to make      DONE
+		# 7)TODO replacing non-unicode bytes in case of UnicodeDecodeError              BUG!!!!
+		#TODO the bytes will be changed one by one so can't exceed unicode range
+	#     should try sending various representations of the same bytes to make      DONE
 	    # sure they're all understood.
+	#TODO should check the length of the returned bytes to make sure we've got everything.
 
 if __name__ == '__main__':
 	unittest.main()
