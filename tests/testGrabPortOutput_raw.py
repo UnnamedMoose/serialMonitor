@@ -241,6 +241,35 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testRaw_OutOfUnicodeRange(self):
+		""" Raw message - a few valid on the border of unicode range, and one
+		that exceeds the valid range (up to 1 114 111=0x10FFFF). """
+		# Below are hex bytes and the corresponding expected results of
+		# the monitor - getting them programmatically is a bit of a pain, so use
+		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
+
+		# 0x110000 = 0x10FFFF+1, exceeds unicode range in Python 3:
+		# https://docs.python.org/3/library/functions.html#chr
+		# However, SerialMonitor will convert bytes one at a time so cannot exceed
+		# the valid unicode range.
+		goodHex=[b'\x10FFFE',b'\x10FFFF',b'\x110000']
+		goodAns=['\x10FFFE','\x10FFFF','\x110000']
+
+		for i in range(len(goodHex)):
+			# Avoid implicit casting in the serial module - need to send bytes.
+			self.fixture.write(goodHex[i])
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(rawOutput[0],goodAns[i]) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation.
+			self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			# 'raw' option should leave outputBuffer unchanged.
+			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
 	#     port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
 		# 1) valid and invalid ASCII characters,                                    DONE
@@ -250,6 +279,7 @@ class Tests(unittest.TestCase):
 		# 5) sequences of many bytes with \0x00 in various places,                  DONE
 		# 6) long integers,                                                         DONE
 		# 7) replacing non-unicode bytes in case of UnicodeDecodeError              _
+		#TODO the bytes will be changed one by one so can't exceed unicode range = BUG.
 	#TODO should try sending various representations of the same bytes to make      DONE
 	    # sure they're all understood.
 

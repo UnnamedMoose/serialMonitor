@@ -81,6 +81,7 @@ class Tests(unittest.TestCase):
 		# Should just get whatever we've put in, but in a string representation of hex.
 		#TODO this was tested against hex(0x01), which returns '0x1'. This would cause
 		# problems down the line because of the missing leading zero.
+		#TODO change the output += chr(c) to use bytes or bytearray of c?
 		self.assertEqual(hexOutput[0],'0x01',msg='Expected 0x01.')
 		# 'hex' option should leave outputBuffer unchanged.
 		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
@@ -269,6 +270,8 @@ class Tests(unittest.TestCase):
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places.                  DONE
 		#TODO 6) long integers -                                                    FAIL
+		#TODO ensure that the integers can be reproduced in the decimal format      _
+		# after reading from serial.
 	#TODO should try sending various representations of the same bytes to make      _
 	    # sure they're all understood.
 
