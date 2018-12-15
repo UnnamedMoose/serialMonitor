@@ -211,14 +211,43 @@ class Tests(unittest.TestCase):
 			# print(i,''.join(chr(x) for x in sentBytes),rawOutput[0],
 			# 	sentBytes,sentBytes.hex()) # To eyeball the results.
 
+	def testRaw_ByteSequence(self):
+		""" Valid raw message - various sequences of bytes with 0x00 in various
+		places. """
+		# Below are hex bytes sequences and the corresponding expected results of
+		# the monitor - getting them programmatically is a bit of a pain, so use
+		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
+		goodHex=[b'\x80\x81\x82',b'\x80\x00\x82',b'\x80\x82\x00',b'\x00\x80\x82',
+				b'\x80\xA0\x00\x82\xA1',b'\x80\x82\xA1\x00',b'\x00\xA1\x80\x82',
+				b'\x00\xAF\x80\x82',b'\x00\xAF\x00\x00',b'\x00\x00\xAF\x00']
+		goodAns=['\x80\x81\x82','\x80\x00\x82','\x80\x82\x00','\x00\x80\x82',
+				# '¡'=0xA1=0xa1, both hex (with a and A) and str will work.
+				'\x80\xa0\x00\x82¡','\x80\x82\xa1\x00','\x00\xA1\x80\x82',
+				# '¯'=0xaf=0xAF, all thee representations will work.
+				'\x00¯\x80\x82','\x00\xaf\x00\x00','\x00\x00\xaf\x00']
 
-	#TODO port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
+		for i in range(len(goodHex)):
+			# Avoid implicit casting in the serial module - need to send bytes.
+			self.fixture.write(goodHex[i])
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+			# print(rawOutput[0],goodAns[i]) # To eyeball the results.
+			# Should just get whatever we've put in, but in a string representation.
+			self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
+			# 'raw' option should leave outputBuffer unchanged.
+			self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	#     port.inWaiting==0, should return the input outputBuffer - (empty dataStr) DONE
 	#TODO test raw output with:
 		# 1) valid and invalid ASCII characters,                                    DONE
 		# 2) valid unicode characters,                                              DONE
 		# 3) valid and invalid numbers,                                             DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
-		# 5) sequences of many bytes with \0x00 in various places,                  _
+		# 5) sequences of many bytes with \0x00 in various places,                  DONE
 		# 6) long integers,                                                         DONE
 		# 7) replacing non-unicode bytes in case of UnicodeDecodeError              _
 	#TODO should try sending various representations of the same bytes to make      DONE
