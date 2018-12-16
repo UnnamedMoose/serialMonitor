@@ -61,7 +61,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	def testHexGoodByte_0x00(self):
-		""" Send a valid hex message. """
+		""" Send a valid hex message using three representations of 0x00. """
 		self.fixture.write(b'\x00')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
@@ -75,8 +75,36 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+		self.fixture.write(b'0') # hex(ord('0'))='0x30', the ASCII zero character.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a hex string representation.
+		self.assertEqual(hexOutput[0],'0x30',msg="Expected '0x30' ('0').")
+		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		i=0
+		b=i.to_bytes(1, byteorder='big', signed=False)
+		self.fixture.write(b)
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a hex string representation.
+		self.assertEqual(hexOutput[0],'0x00',msg='Expected 0x00.')
+		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	def testHexGoodByte_0x01(self):
-		""" Send a valid hex message. """
+		""" Send a valid hex message using three different representations of 0x01. """
 		self.fixture.write(b'\x01')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
@@ -93,8 +121,36 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+		self.fixture.write(b'1') # hex(ord('0'))='0x31', the ASCII one character.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a hex string representation.
+		self.assertEqual(hexOutput[0],'0x31',msg="Expected '0x31' ('1').")
+		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		i=1
+		b=i.to_bytes(1, byteorder='big', signed=False)
+		self.fixture.write(b)
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a hex string representation.
+		self.assertEqual(hexOutput[0],'0x01',msg='Expected 0x01.')
+		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	def testHexGoodByte_0x41(self):
-		""" Send a valid hex message, ASCII 'A'. """
+		""" Send a valid hex message, ASCII 'A'=0x41 in three different formats. """
 		self.fixture.write(b'\x41')
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
@@ -107,6 +163,34 @@ class Tests(unittest.TestCase):
 		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		self.fixture.write(b'A') # 0x41='A', the ASCII one character.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a hex string representation.
+		self.assertEqual(hexOutput[0],'0x41',msg="Expected '0x41' ('A').")
+		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		i=0x41
+		b=i.to_bytes(1, byteorder='big', signed=False)
+		self.fixture.write(b)
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		# Should just get whatever we've put in, but in a hex string representation.
+		self.assertEqual(hexOutput[0],'0x41',msg='Expected 0x41.')
+		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
 	def testHexGoodByte_fullASCIITable(self):
 		""" Send a valid hex message, one valid ASCII byte at a time. """
@@ -278,11 +362,11 @@ class Tests(unittest.TestCase):
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places.                  DONE
 		# 6) long integers -                                                        DONE
-		#TODO ensure that the integers can be reproduced in the decimal format      _
-		# after reading from serial.
-	#TODO should try sending various representations of the same bytes to make      _
+	# Should try sending various representations of the same bytes to make          DONE
 	    # sure they're all understood. This is already implemented in _raw.
 	# Should check the length of the returned bytes.                                DONE
+	#TODO ensure that the integers can be reproduced in the decimal format          _
+		# after reading from serial.
 
 if __name__ == '__main__':
 	unittest.main()
