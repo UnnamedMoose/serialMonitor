@@ -81,9 +81,9 @@ class Tests(unittest.TestCase):
 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should just get whatever we've put in, but in a string representation of hex.
-		#TODO this was tested against hex(0x01), which returns '0x1'. This would cause
-		# problems down the line because of the missing leading zero.
-		#TODO change the output += chr(c) to use bytes or bytearray of c?
+		# This was tested against hex(0x01), which returns '0x1'. This would cause
+		# problems down the line because of the missing leading zero. Hence, changed
+		# the requirements to include that leading zero.
 		self.assertEqual(hexOutput[0],'0x01',msg='Expected 0x01.')
 		self.assertEqual(len(hexOutput[0]),4,msg="Expected four bytes ('0x' and two digits).")
 		# 'hex' option should leave outputBuffer unchanged.
@@ -167,7 +167,7 @@ class Tests(unittest.TestCase):
 		goodHex=[b'\x80\x81\x82',b'\x80\x00\x82',b'\x80\x82\x00',b'\x00\x80\x82',
 				b'\x80\xA0\x00\x82\xA1',b'\x80\x82\xA1\x00',b'\x00\xA1\x80\x82',
 				b'\x00\xAF\x80\x82']
-		goodAns=['0x80:0x81:0x82','0x80:0x0:0x82','0x80:0x82:0x0','0x0:0x80:0x82',
+		goodAns=['0x80:0x81:0x82','0x80:0x00:0x82','0x80:0x82:0x00','0x00:0x80:0x82',
 				'0x80:0xa0:0x00:0x82:0xa1','0x80:0x82:0xa1:0x00','0x00:0xa1:0x80:0x82',
 				'0x00:0xaf:0x80:0x82']
 		noBytes=[14,14,14,14,24,19,19,19] # No. expected returned bytes.
@@ -214,7 +214,7 @@ class Tests(unittest.TestCase):
 		#print(hexOutput[0],i) # To eyeball the results.
 		# Should just get whatever we've put in, but in a string representation of hex.
 		self.assertEqual(hexOutput[0],goodAns,msg='Expected {}.'.format(goodAns))
-		self.assertEqual(len(hexOutput[0]),644,msg='Expected 644 bytes (129*4+129+1edge-2edges).')
+		self.assertEqual(len(hexOutput[0]),664,msg='Expected 664 bytes (129*4+129+1edge-2edges).')
 		# 'hex' option should leave outputBuffer unchanged.
 		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
@@ -225,28 +225,24 @@ class Tests(unittest.TestCase):
 		self.maxDiff=previousMaxDiff # Back to what it was.
 
 	def testHexGoodBytes_twoByteInt(self):
-		""" Valid hex message - one two-byte integer at a time. """
-		# Below are hex bytes, expected results of the monitor and their decimal
-		# representations - getting them programmatically is a bit of a pain, so
-		#  use https://www.rapidtables.com/convert/number/decimal-to-hex.html
-		# All hex-code letters will be lower case - they're the same numbers as capitals, though.
-		goodHex=[b'\x01\x03'] #TODO using int.to_bytes here might help to send the right bytes.
-		goodAns=['0x01:0x03'] #TODO verify if this is correct: AssertionError: '0x1:0x3' != '0x01:0x03'
-		#TODO according to the hex-to-decimal converter, the leading zeros in front of 1 and 3 are needed
-		# so the AssertionError is correct. So there might be a problem in the hex option.
-		# Also, it's impossible to create a bute array from 0x1 0x3, whereas 0x01 0x03 works:
-		# >>> bbb=bytearray(b'\x1\x3')
-		# File "<stdin>", line 1
-		# SyntaxError: (value error) invalid \x escape at position 0
-		# bbb=bytearray(b'\x01\x03') # Works.
-		goodDec=[259]
+		""" Valid hex message - one two-byte integer at a time. Two different
+		ways of encoding the sent bytes. """
+		# Below are hex bytes and expected results of the monitor.
+		# All hex-code letters will be lower case - they're the same numbers as
+		# capitals, though.
+		goodHex=[b'\x01\x03',b'\x11\x13',b'\x00\x01',b'\x01\x00',b'\x10\x00',
+			b'\x10\x01',b'\x01\x01',b'\x0A\x01',b'\xA1\x01',b'\xA0\x00',
+			b'\x00\x0A',b'\x12\x34',b'\xFF\xFF']
+		goodAns=['0x01:0x03','0x11:0x13','0x00:0x01','0x01:0x00','0x10:0x00',
+			'0x10:0x01','0x01:0x01','0x0a:0x01','0xa1:0x01','0xa0:0x00',
+			'0x00:0x0a','0x12:0x34','0xff:0xff']
 
-		for i in range(len(goodDec)): # 0x103 to 0xFFFF, two byte integers.
+		for i in range(len(goodHex)): # Fixed, hard-coded bytes.
 			# Avoid implicit casting in the serial module - need to send bytes.
 			self.fixture.write(goodHex[i])
 			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
 			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
-			print(hexOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
+			# print(i,hexOutput[0],goodAns[i]) # To eyeball the results.
 			# Should just get whatever we've put in, but in a string representation of hex.
 			self.assertEqual(hexOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
 			self.assertEqual(len(hexOutput[0]),9,msg="Expected nine bytes (e.g. 0xAA:0xBB).")
@@ -257,20 +253,22 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-			#TODO there is a bug with long integers.
-			# For 259=0x103='ă', get '0x10:0x33' from the SerialMonitor.
-			#>>> hex(259)
-			#'0x103'
-			#>>> chr(259)
-			#'ă'
-			#>>> bytes(chr(259),'utf-8')
-			#b'\xc4\x83'
-			#>>> sm.commsInterface.grabPortOutput(fixture,'DummyBuff','hex')
-			#('', 'DummyBuff', {})
-			#>>> fixture.write(b'\x103')
-			#2
-			#>>> sm.commsInterface.grabPortOutput(fixture,'DummyBuff','hex')
-			#('0x10:0x33', 'DummyBuff', {})
+		for i in range(256,65535,500): # Programmatically computed 0x0100 to 0xFFFF.
+			sentBytes=i.to_bytes(2,byteorder='big',signed=False)
+			self.fixture.write(sentBytes)
+			s=sentBytes.hex() # String representation of what we've sent.
+			time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+			hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+			# Should just get whatever we've put in, but in a string representation of hex.
+			self.assertEqual(hexOutput[0],'0x'+s[:2]+':0x'+s[2:],
+				msg='Expected {}.'.format('0x'+s[:2]+':0x'+s[2:]))
+			self.assertEqual(len(hexOutput[0]),9,msg="Expected nine bytes (e.g. 0xAA:0xBB).")
+			# 'hex' option should leave outputBuffer unchanged.
+			self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+			# Should have no warnings.
+			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+			# The port should be empty now.
+			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	# port.inWaiting==0, should return the input outputBuffer - (empty dataStr)     DONE
 	# Test hex encoding with:
@@ -279,7 +277,7 @@ class Tests(unittest.TestCase):
 		# 3) valid and invalid numbers, - one byte (up to 255) -                    DONE
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places.                  DONE
-		#TODO 6) long integers -                                                    FAIL
+		# 6) long integers -                                                        DONE
 		#TODO ensure that the integers can be reproduced in the decimal format      _
 		# after reading from serial.
 	#TODO should try sending various representations of the same bytes to make      _

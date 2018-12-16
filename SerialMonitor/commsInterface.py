@@ -142,7 +142,7 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 			# skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
 			# Write one character at the time and repalce invalid bytes manually.
 			for c in dataStr:
-				try:
+				try:#TODO we will decode one byte at a time, can't exceed unicode range!
 					output += chr(c)
 
 				# c was an unknown byte - replace it.
@@ -151,7 +151,12 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 
 		# Hex output.
 		else:
-			# Hex encoding of the datStr.
-			output = ":".join("{}".format(hex(c)) for c in dataStr)
+			# Take one byte at a time from dataStr (<class 'bytes'>) and format
+			# it as a hex-code, e.g. 0x12 or 0x03. N.B. the leading '0' for
+			# integers smaller than 0x0F+1=16. Need it to understand transactions
+			# involving many bytes.
+			output = ':'.join('0x'+c.to_bytes(1,'big',signed=False).hex() for c in dataStr)
 #TODO for raw and hex output, outputBuffer makes no sense.
 	return output, outputBuffer, warningSummary
+
+#TODO Update the docs regarding the number of expected returned bytes.
