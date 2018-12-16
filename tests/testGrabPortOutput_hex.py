@@ -193,7 +193,8 @@ class Tests(unittest.TestCase):
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
 	def testHexGoodByte_fullASCIITable(self):
-		""" Send a valid hex message, one valid ASCII byte at a time. """
+		""" Send a valid hex message, one valid ASCII byte at a time. Also check
+		that the received integer is what we actually send. """
 		for i in range(0,128): # From 0x00 to 0x7F.
 			# Avoid implicit casting in the serial module - need to send bytes.
 			sentBytes=i.to_bytes(1,byteorder='big',signed=False)
@@ -211,9 +212,14 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+			# Check that we got the same number that we've sent.
+			receivedInt=int(hexOutput[0],0) # Received in base-10.
+			self.assertEqual(receivedInt,i,msg='Expected {}=={}.'.format(receivedInt,i))
+
 	def testHexGoodByte_nonASCIIInts(self):
 		""" Valid hex message - one integer above the ASCII range at a time.
-		Also covers extended ASCII range and unicode Latin script codes. """
+		Also covers extended ASCII range and unicode Latin script codes.
+		Checks that we can reproduce the sent integer. """
 		# Below are hex bytes, expected results of the monitor and their decimal
 		# representations up to 255 - getting them programmatically is a bit of
 		# a pain, so use https://www.rapidtables.com/convert/number/ascii-hex-bin-dec-converter.html
@@ -237,6 +243,10 @@ class Tests(unittest.TestCase):
 			self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+			# Check that we got the same number that we've sent.
+			receivedInt=int(hexOutput[0],0) # Received in base-10.
+			self.assertEqual(receivedInt,goodDec[i],msg='Expected {}=={}.'.format(receivedInt,goodDec[i]))
 
 	def testHex_ByteSequence(self):
 		""" Valid hex message - various sequences of bytes with 0x00 in various
@@ -365,7 +375,7 @@ class Tests(unittest.TestCase):
 	# Should try sending various representations of the same bytes to make          DONE
 	    # sure they're all understood. This is already implemented in _raw.
 	# Should check the length of the returned bytes.                                DONE
-	#TODO ensure that the integers can be reproduced in the decimal format          _
+	# Ensure that the integers can be reproduced in the decimal format              DONE
 		# after reading from serial.
 
 if __name__ == '__main__':
