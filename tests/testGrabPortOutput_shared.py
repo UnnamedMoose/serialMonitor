@@ -59,10 +59,33 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer.')
 
-	def testRaiseVE_InalidOutputFormat(self):
+	def testRaiseVE_InvalidOutputFormat(self):
 		""" Should raise VE for invalid outputFormat. """
 		self.assertRaises(ValueError,sm.commsInterface.grabPortOutput,
 			self.fixture,"DummyBuff","invalidFormat")
+
+	def testRaiseTE_InvalidArgumentTypes(self):
+		""" Should raise TE for wrong argument types. """
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			'not a port','DummyBuff','hex')
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			'not a port','DummyBuff','raw')
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			'not a port','DummyBuff','formatted')
+
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			1,'DummyBuff','hex')
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			1,'DummyBuff','raw')
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			1,'DummyBuff','formatted')
+
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			b'\x01','DummyBuff','hex')
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			b'\x01','DummyBuff','raw')
+		self.assertRaises(TypeError,sm.commsInterface.grabPortOutput,
+			b'\x01','DummyBuff','formatted')
 
 	def testDefaultRetType_formatted(self):
 		""" Should return string, string, dict when there's no message.
@@ -150,8 +173,6 @@ class Tests(unittest.TestCase):
 			msg='outputBuffer not a string.')
 		self.assertIs(type(formattedOutput[2]),dict,
 			msg='warningSummary not a dict.')
-
-	#TODO add some checks on other inputs - port and outputBuffer
 
 if __name__ == '__main__':
 	unittest.main()

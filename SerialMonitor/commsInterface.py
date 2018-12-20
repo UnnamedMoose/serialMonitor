@@ -96,9 +96,17 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 	# formatted output
 	output = ""
 
-	# check requested formatting
+	# Check requested formatting and other input types.
 	if outputFormat not in ['formatted', 'raw', 'hex']:
 		raise ValueError("Requested output format {} not supported.".format(outputFormat))
+
+	if not isinstance(port,serial.SerialBase):
+		raise TypeError('Expected port of type serial.serialposix.Serial,\
+		 got {} instead.'.format(type(port)))
+
+	if not isinstance(outputBuffer,str):
+		raise TypeError('Expected outputBuffer of type str, got {}\
+		 instead.'.format(type(outputBuffer)))
 
 	# if incoming bytes are waiting to be read from the serial input buffer
 	if (port.inWaiting() > 0):
