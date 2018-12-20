@@ -301,8 +301,8 @@ class Tests(unittest.TestCase):
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
 	def testRaw_OutOfUnicodeRange(self):
-		""" Raw message - a few valid on the border of unicode range, and one
-		that exceeds the valid range (up to 1 114 111=0x10FFFF). """
+		""" Raw message - a few valid messgages on the border of unicode range,
+		and one that exceeds the valid range (up to 1 114 111=0x10FFFF). """
 		# Below are integers and the corresponding expected results of
 		# the monitor - getting them programmatically is a bit of a pain, so use
 		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
@@ -339,8 +339,8 @@ class Tests(unittest.TestCase):
 		# 4) empty dataStr, - (port.inWaiting==0)                                   DONE
 		# 5) sequences of many bytes with \0x00 in various places,                  DONE
 		# 6) long integers,                                                         DONE
-		# 7)TODO replacing non-unicode bytes in case of UnicodeDecodeError              BUG!!!!
-		#TODO the bytes will be changed one by one so can't exceed unicode range
+		# 7) replacing non-unicode bytes in case of UnicodeDecodeError              DONE
+			# The bytes will be changed one by one so can't exceed unicode range.
 	# Should try sending various representations of the same bytes to make          DONE
 	    # sure they're all understood.
 	# Should check the length of the returned bytes.                                DONE

@@ -118,7 +118,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         already defined. """
         # initialise the underlying object
         baseClasses.mainFrame.__init__(self, None)
-        
+
         # File logger name.
         self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
 
@@ -385,7 +385,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         ---------
             prepend (string, default empty) - how to prepend the message, useful
                 for highlighting e.g. in/out directions, etc.
-            colour (int tuple, len=3m default=(0,0,0)) - RGB colour of text
+            colour (int tuple, len=3, default=(0,0,0)) - RGB colour of text
         """
 
         # move the cursor to the end of the box
@@ -509,6 +509,9 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 # log and print received data in the text box
                 # FIXME Artur: need to double check that it will all print ok, may need to
                 #   convert raw outputs to strings and/or split at \n characters.
+				#TODO output might be casted inside self.logFileTextControl.WriteText
+				#	amd cause UnicodeDecodeErrors. It should be fine because output is
+				#	a string, which is Unicode in Python 3, but you never know.
                 self.writeToTextBox(output)
                 logger.info(output)
 

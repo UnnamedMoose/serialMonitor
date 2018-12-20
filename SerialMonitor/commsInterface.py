@@ -137,17 +137,15 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 
 		# Raw but not formatted output.
 		elif outputFormat == "raw":
-			# Just print whatever came out of the serial port.
-			# Converting dataStr to unicode as used in the logFileTextControl will sometimes
-			# skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
-			# Write one character at the time and repalce invalid bytes manually.
-			for c in dataStr:
-				try:#TODO we will decode one byte at a time, can't exceed unicode range!
-					output += chr(c)
-
-				# c was an unknown byte - replace it.
-				except UnicodeDecodeError:
-					output += u'\uFFFD'
+			# Just print whatever came out of the serial port as a string.
+			# Converting dataStr to unicode used to sometimes skip characters
+			# (e.g. for 0x00) and the remaining parts of the dataStr.
+			# It would also cause UnicodeDecodeErrors, which were caught here and
+			# the wrong bytes were replaced with u'\uFFFD'. In Python 3 this is
+			# no longer necessary - all strings are unicode and the maximum range
+			# of unicode codes (0x10FFFF) can't be exceeded with a single byte.
+			for c in dataStr: # For every byte (dataStr is <class 'bytes'>)
+				output += chr(c)
 
 		# Hex output.
 		else:
