@@ -71,8 +71,18 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 	""" See if there is anything to read in the port and grab the outputs.
 
 	The calling part of the code is responsible for checking the status of the
-	connection. The grabed output is formatted into a string which can then
+	connection. The grabbed output is formatted into a string which can then
 	be examined or parsed as needed.
+
+	Support different formatting types, which depend on the supplied `outputFormat`
+	argument:
+	* raw - convert bytes from the `port` into `str` (unicode) one byte at a time,
+	* hex - convert all bytes from the `port` into `str` containing hex-codes of
+	  the individual bytes, e.g. 0x00:0x01:0x0a,
+	* formatted - expect the bytes in the `port` to contain end-of-line characters
+	  ('\n'), which will be used to split the bytes into lines. If the last line
+	  is incomplete, it will be returned in `outputBuffer`. For `hex` and `raw`
+	  formatting types, `outputBuffer` is not used.
 
 	Arguments
 	---------
@@ -89,6 +99,12 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 			received. Needs to be passed to the next call to avoid data loss.
 		(dict) - summary of warnings and errors raised. These should be taken
 			care of externally - this function tries its best not to fall over.
+
+	Raises
+	---------
+		ValueError - when supplied `outputFormat` is not supported.
+		TypeError - when `port` or `outputBuffer` are not of expected types
+		(serial.SerialBase and str, respectively).
 	"""
 
 	# will hold any warnings encountered.
@@ -96,20 +112,27 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 	# formatted output
 	output = ""
 
-	# check requested formatting
+	# Check requested formatting and other input types.
 	if outputFormat not in ['formatted', 'raw', 'hex']:
 		raise ValueError("Requested output format {} not supported.".format(outputFormat))
 
+	if not isinstance(port,serial.SerialBase):
+		raise TypeError('Expected port of type serial.serialposix.Serial,\
+		 got {} instead.'.format(type(port)))
+
+	if not isinstance(outputBuffer,str):
+		raise TypeError('Expected outputBuffer of type str, got {}\
+		 instead.'.format(type(outputBuffer)))
+
 	# if incoming bytes are waiting to be read from the serial input buffer
 	if (port.inWaiting() > 0):
-		# Read the bytes.
+		# Read the bytes (dataStr is <class 'bytes'>).
 		dataStr = port.read(port.inWaiting())
 
 		# Pass to the buffer and convert from binary array to \n-separated ASCII,
 		# unless the user desires to see the raw, undecoded output. In such case,
-		# don't expect end of line characters and replace unkown bytes
-		# with a unicode replacement character. Also allow the user
-		# to see the hex code of the received bytes, not unicode.
+		# don't expect end of line characters. Also allow the user to see the
+		# hex codes of the received bytes, not the corresponding unicode characters.
 
 		# Processed and (arguably) nicely formatted output.
 		if outputFormat == "formatted":
@@ -137,21 +160,22 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 
 		# Raw but not formatted output.
 		elif outputFormat == "raw":
-			# Just print whatever came out of the serial port.
-			# Converting dataStr to unicode as used in the logFileTextControl will sometimes
-			# skip characters (e.g. for 0x00) and the remaining parts of the dataStr.
-			# Write one character at the time and repalce invalid bytes manually.
-			for c in dataStr:
-				try:
-					output += chr(c)
-
-				# c was an unknown byte - replace it.
-				except UnicodeDecodeError:
-					output += u'\uFFFD'
+			# Just print whatever came out of the serial port as a string.
+			# Converting dataStr to unicode used to sometimes skip characters
+			# (e.g. for 0x00) and the remaining parts of the dataStr.
+			# It would also cause UnicodeDecodeErrors, which were caught here and
+			# the wrong bytes were replaced with u'\uFFFD'. In Python 3, this is
+			# no longer necessary - all strings are unicode and the maximum range
+			# of unicode codes (0x10FFFF) can't be exceeded with a single byte.
+			for c in dataStr: # For every byte (dataStr is <class 'bytes'>)
+				output += chr(c) # Convert one byte at a time.
 
 		# Hex output.
 		else:
-			# Hex encoding of the datStr.
-			output = ":".join("{}".format(hex(c)) for c in dataStr)
+			# Take one byte at a time from dataStr (<class 'bytes'>) and format
+			# it as a hex-code, e.g. 0x12 or 0x03. Separate consecutive bytes
+			# with ':'. Note the leading '0' for integers smaller than 0x0F+1=16.
+			# Need it to understand transmissions involving many bytes.
+			output = ':'.join('0x'+c.to_bytes(1,'big',signed=False).hex() for c in dataStr)
 #TODO for raw and hex output, outputBuffer makes no sense.
 	return output, outputBuffer, warningSummary
