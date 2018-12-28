@@ -139,18 +139,20 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 			try:
 				outputBuffer += dataStr.decode('ascii')
 
-				# extract any full lines and log them - there can be more than
+				# Extract any full lines and log them - there can be more than
 				# one, depending on the loop frequencies on either side of the
 				# serial conneciton
 				lines = outputBuffer.rpartition("\n")
-				if lines[0]:
+				if lines[0]: # lines[0] = complete lines terminated with '\n'.
 					for line in lines[0].split("\n"):
 						output += "{}\n".format(line)
 
 					# Keep the remaining output in buffer if there are no EOL characters
 					# in it. This is useful if only part of a message was received on last
 					# buffer update.
-					outputBuffer = lines[2]
+					outputBuffer = lines[2] # lines[2] = Remainder after the
+						# last '\n' and not terminated with '\n'.
+						# lines[1] = '\n'
 
 			except UnicodeDecodeError as uderr:
 				# Sometimes rubbish gets fed to the serial port.
