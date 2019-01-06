@@ -165,10 +165,84 @@ class Tests(unittest.TestCase):
 			# The port should be empty now.
 			self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testFormattedGoodByte_invalidASCII(self):
+		""" Send a formatted message with an invalid ASCII byte. """
+		# First send the largest valid ASCII byte.
+		self.fixture.write(b'\x7F') # 127 = 0x7F, largest valid ASCII.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# 'formatted' outputFormat will append to the outputBuffer if there's no EOL termination.
+		self.assertEqual(formattedOutput[1],'DummyBuff\x7F',msg='Expected DummyBuff\\x7F.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		# Send one invalid byte.
+		self.fixture.write(b'\x80') # 128 = 0x80, invalid ASCII.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Will not change the outputBuffer if there's an invalid byte sent.
+		self.assertEqual(formattedOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have a warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		# print(formattedOutput[2]) # To eyeball the results.
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		self.fixture.write(b'\x80\x81') # 128=0x80, 129=0x81, both invalid ASCII.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Will not change the outputBuffer if there's an invalid byte sent.
+		self.assertEqual(formattedOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have two warnings.
+		self.assertEqual(len(formattedOutput[2]),2,msg='Expected two warnings in the dict.')
+		print(formattedOutput[2]) # To eyeball the results.
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testFormattedGoodByte_validInvalidASCII(self):
+		""" Send a formatted message with valid and invalid ASCII bytes. """
+		# Send one valid and one invalid byte.
+		self.fixture.write(b'\x7F\x80') # 128=0x80, invalid ASCII. 127=0x7F is valid.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Should append the valid byte to outputBuffer (no EOL termination), and discard the invalid byte.
+		self.assertEqual(formattedOutput[1],'DummyBuff\x7F',msg='Expected DummyBuff\\x7F.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		# print(formattedOutput[2]) # To eyeball the results.
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testFormattedGoodByte_invalidValidASCII(self):
+		""" Send a formatted message with invalid and valid ASCII bytes. """
+		# Send one invalid and one valid byte.
+		self.fixture.write(b'\x80\x7F') # 128=0x80, invalid ASCII. 127=0x7F is valid.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Should append the valid byte to outputBuffer (no EOL termination), and discard the invalid byte.
+		self.assertEqual(formattedOutput[1],'DummyBuff\x7F',msg='Expected DummyBuff\\x7F.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		# print(formattedOutput[2]) # To eyeball the results.
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
 	# port.inWaiting==0, should return the input outputBuffer - (empty dataStr)     DONE
 	#TODO test formatted output with:
 		# 1) valid ASCII characters,                                                DONE
-		# 2) invalid ASCII characters,                                              _
+		# 2) invalid ASCII characters,                                              BUG
 		# 3) valid numbers,                                                         DONE
 		# 4) empty dataStr,                                                         DONE
 		# 5) valid and invalid formatitng of the dataStr,                           _

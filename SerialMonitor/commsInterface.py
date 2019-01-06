@@ -137,6 +137,8 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 		# Processed and (arguably) nicely formatted output.
 		if outputFormat == "formatted":
 			try:
+				#TODO trying to decode the entire dataStr to ASCII will discard
+				# all the bytes contained therein even if only one of them is invalid.
 				outputBuffer += dataStr.decode('ascii')
 
 				# Extract any full lines and log them - there can be more than
@@ -155,6 +157,10 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 						# lines[1] = '\n'
 
 			except UnicodeDecodeError as uderr:
+				#TODO the error will be overwritten when sending more than one
+				# invlaid byte - using the same dict key. Suggest adding current
+				# len(warningSummary) to the disct key.
+
 				# Sometimes rubbish gets fed to the serial port.
 				# Log the error and the line that caused it.
 				warningSummary["UnicodeDecodeError"] = \
