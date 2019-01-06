@@ -139,6 +139,89 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testFormattedGoodByte_0andEOL(self):
+		""" Send a single formatted byte with two different representations
+		of '0' and an EOL termination. """
+		self.fixture.write(b'\x00\n')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent byte + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff\x00\n',msg='Expected DummyBuff\\x00\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		self.fixture.write(b'0\n')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent byte + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff0\n',msg='Expected DummyBuff0\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testFormattedGoodByte_1andEOL(self):
+		""" Send a single formatted byte with two different representations of
+		'1' and an EOL termination. """
+		self.fixture.write(b'\x01\n')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent byte + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff\x01\n',msg='Expected DummyBuff\\x01\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		self.fixture.write(b'1\n')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent byte + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff1\n',msg='Expected DummyBuff1\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testFormattedGoodByte_0x41andEOL(self):
+		""" Send a single formatted byte with two different representations of
+		ASCII 'A' = 0x41 and an EOL termination. """
+		self.fixture.write(b'\x41\n')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent byte + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff\x41\n',msg='Expected DummyBuff\\x41\n.')
+		self.assertEqual(formattedOutput[0],'DummyBuffA\n',msg='Expected DummyBuffA\n.') # Both representations work.
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		self.fixture.write(b'A\n')
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent byte + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuffA\n',msg='Expected DummyBuffA\n.')
+		self.assertEqual(formattedOutput[0],'DummyBuff\x41\n',msg='Expected DummyBuff\\x41\n.') # Both representations work.
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
 	def testFormattedGoodByte_fullASCIITable(self):
 		""" Send a valid formatted message, one valid ASCII byte at a time. Some will
 		be sent and read as hex codes of bytes, others as ASCII characters. """
@@ -245,11 +328,11 @@ class Tests(unittest.TestCase):
 		# 2) invalid ASCII characters,                                              BUG
 		# 3) valid numbers,                                                         DONE
 		# 4) empty dataStr,                                                         DONE
-		# 5) valid and invalid formatitng of the dataStr,                           _
-		# 5) sequences of many bytes.                                               _
-	#TODO should try sending various representations of the same bytes to make      _
-	    # sure they're all understood.
-	#TODO send single bytes in various representations w/ EOL termination.
+		# 5) valid and invalid formatitng of the dataStr (bytes with and            DONE
+		# without EOL termination),
+		# 5) sequences of many bytes interrupted with \n.                           _
+	# Should try sending various representations of the same bytes to make          DONE
+	# sure they're all understood.
 
 if __name__ == '__main__':
 	unittest.main()
