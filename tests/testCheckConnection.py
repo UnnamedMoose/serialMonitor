@@ -33,8 +33,7 @@ class dummyPort(object):
 		if self.inWaiting_:
 			return self.inWaiting_
 		else:
-			# TODO AL: check exactly what kind of error serial returns
-			raise ValueError
+			raise sm.serial.SerialException
 
 	def readable(self):
 		return self.readable_
