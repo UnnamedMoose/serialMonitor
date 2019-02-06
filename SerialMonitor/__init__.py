@@ -214,6 +214,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 self.currentSerialConnection = 0
                 self.portOpen = False
                 self.updatePorts()
+                self.portChoice.SetSelection(0) # Go back to 'None' selection.
                 logger.error('Failed to connect to a port due to {}.'.format(unknonwError))
 
         # if None is chosen then close the current port
@@ -367,7 +368,12 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         logger.info('User disconnected from port.')
 
     def checkConnection(self):
-        """ Checks if there is anything still connected to the port. """
+        """ Checks if there is anything still connected to the port.
+
+		Returns
+		-------
+		True if `self.currentSerialConnection` port is readable, False otherwise.
+		"""
 
         if not commsInterface.checkConnection(self.currentSerialConnection):
             # handle all internal nuts and bolts related to the connection
@@ -381,6 +387,9 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 wx.OK | wx.ICON_ERROR)
             # check what ports are open once the user has had a chance to react.
             self.updatePorts()
+            return False
+        else: # All is good.
+            return True
 
     def writeToTextBox(self, msg, prepend="", colour=(0,0,0)):
         """ Log a message inside the main text display window.
