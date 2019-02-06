@@ -169,6 +169,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     def onChoseSerialPort(self, event):
         """ picks up the newly selected port and attempts to connect to a peripheral device via it """
+        logger.debug('Choosing serial port.')
         # ignore the None option
         if self.portChoice.GetStringSelection() != 'None':
             try:
@@ -185,7 +186,8 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                                                                  parity=self.currentParity,
                                                                  bytesize=self.currentByteSize)
 
-                    if self.checkConnection():
+                    logger.debug('Checking {}'.format(self.currentSerialConnection))
+                    if self.checkConnection(): # Try to connnect to the user-selected port.
                         self.portOpen = True
                         self.currentPort = self.portChoice.GetStringSelection()
                         logger.info('Connected to port {}'.format(self.currentPort))
@@ -195,14 +197,25 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                             self.currentSerialConnection.stopbits,
                             self.currentSerialConnection.parity,
                             self.currentSerialConnection.bytesize,))
+                    else: # Something's wrong, couldn't connect.
+                        wx.MessageBox('Cannot connect to port {}.'.format(
+                            self.portChoice.GetStringSelection()), 'Error',
+                            wx.OK | wx.ICON_ERROR)
+                        logger.error('Could not connect to port {}'.format(
+                            self.portChoice.GetStringSelection()))
+                        self.currentSerialConnection = 0
+                        self.portOpen = False
+                        self.updatePorts()
+                        self.portChoice.SetSelection(0) # Go back to 'None' selection.
 
-            except:
+            except BaseException as unknonwError:
                 wx.MessageBox('Unknown problem occurred while establishing connection using the chosen port!', 'Error',
                           wx.OK | wx.ICON_ERROR)
                 self.currentSerialConnection = 0
                 self.portOpen = False
                 self.updatePorts()
-                logger.error('Failed to connect to a port.')
+                self.portChoice.SetSelection(0) # Go back to 'None' selection.
+                logger.error('Failed to connect to a port due to {}.'.format(unknonwError))
 
         # if None is chosen then close the current port
         else:
@@ -355,7 +368,12 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         logger.info('User disconnected from port.')
 
     def checkConnection(self):
-        """ Checks if there is anything still connected to the port. """
+        """ Checks if there is anything still connected to the port.
+
+		Returns
+		-------
+		True if `self.currentSerialConnection` port is readable, False otherwise.
+		"""
 
         if not commsInterface.checkConnection(self.currentSerialConnection):
             # handle all internal nuts and bolts related to the connection
@@ -369,6 +387,9 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 wx.OK | wx.ICON_ERROR)
             # check what ports are open once the user has had a chance to react.
             self.updatePorts()
+            return False
+        else: # All is good.
+            return True
 
     def writeToTextBox(self, msg, prepend="", colour=(0,0,0)):
         """ Log a message inside the main text display window.
