@@ -17,6 +17,8 @@ TEST_PORT = 'loop://' # Type of the test port. This one is a simple RX <-> TX
 	# type to be used for unit testing.
 	# https://pyserial.readthedocs.io/en/latest/url_handlers.html#loop
 
+TIMEOUT = 20 # Will wait for data to come from the Arduino TIMEOUT*100 ms.
+
 class Tests(unittest.TestCase):
 
 	def setUp(self):
@@ -46,12 +48,21 @@ class Tests(unittest.TestCase):
 
 		# Check that the port is readable.
 		if not sm.commsInterface.checkConnection(self.fixture):
+			self.fixture.close()
 			raise BaseException('Port is unreadable.')
 
 		# Check that the Arduino replies with the expected message.
-		self.fixture.write(b'0')
+		self.fixture.write(b'0') # Send the command byte.
+		timeoutCounter=0
+
 		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
 			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino timed out.')
+
+		# Verify the reply to the command byte.
 		self.assertEqual(self.fixture.read(20),b'Arduino reachable.',
 						msg="Arduino hasn't replied with the expected string to the test command.")
 
