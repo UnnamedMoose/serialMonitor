@@ -125,48 +125,41 @@ class Tests(unittest.TestCase):
 				byteorder='big',signed=False)
 		self.assertEqual(tempInt,0,msg='tempInt != 0.')
 
-	# def testRawGoodByte_1(self):
-	# 	""" Send a single raw byte with three different representations of '1'. """
-	# 	self.fixture.write(b'\x01')
-	# 	time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 	rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 	# Should just get whatever we've put in, but in a raw string representation.
-	# 	self.assertEqual(rawOutput[0],'\x01',msg='Expected \\x01.')
-	# 	self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 	# 'raw' option should leave outputBuffer unchanged.
-	# 	self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 	# Should have no warnings.
-	# 	self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 	# The port should be empty now.
-	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
-	#
-	# 	self.fixture.write(b'1')
-	# 	time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 	rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 	# Should just get whatever we've put in, but in a raw string representation.
-	# 	self.assertEqual(rawOutput[0],'1',msg="Expected '1'.")
-	# 	self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 	# 'raw' option should leave outputBuffer unchanged.
-	# 	self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 	# Should have no warnings.
-	# 	self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 	# The port should be empty now.
-	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-	#
-	# 	i=1
-	# 	b=i.to_bytes(1, byteorder='big', signed=False)
-	# 	self.fixture.write(b)
-	# 	time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 	rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 	# Should just get whatever we've put in, but in a raw string representation.
-	# 	self.assertEqual(rawOutput[0],'\x01',msg='Expected \\x01.')
-	# 	self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 	# 'raw' option should leave outputBuffer unchanged.
-	# 	self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 	# Should have no warnings.
-	# 	self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 	# The port should be empty now.
-	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+	def testRawGoodByte_1(self):
+		""" Send a three bytes with three different representations of '1'. """
+		self.fixture.write(b'O') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get '1'11 (ASCII and two integers) in a raw string representation.
+		self.assertEqual(rawOutput[0],'1\x01\x01',msg="Expected '1'\\x01\\x01 ('1'11).")
+		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		# Verify casting of the received bytes to integers.
+		for i in range(len(rawOutput[0])): # Already asserted it's three bytes. Use it.
+			self.assertTrue(type(rawOutput[0][i])==str,'rawOutput[0][{}] is not string.'.format(i))
+		tempInt=int(rawOutput[0][0]) # Cast the unicode string to integer.
+		self.assertEqual(tempInt,1,msg='tempInt != 1.')
+		tempInt=int.from_bytes(bytes(rawOutput[0][1],'ASCII'), # Cast str to bytes, and bytes to int.
+				byteorder='big',signed=False)
+		self.assertEqual(tempInt,1,msg='tempInt != 1.')
+		tempInt=int.from_bytes(bytes(rawOutput[0][2],'ASCII'), # Cast str to bytes, and bytes to int.
+				byteorder='big',signed=False)
+		self.assertEqual(tempInt,1,msg='tempInt != 1.')
 
 	def testRawGoodByte_0x41(self):
 		""" Send three raw bytes with three different representations of

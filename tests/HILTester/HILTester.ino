@@ -5,6 +5,15 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+ void sendOne(void)
+ /* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
+ {
+	 Serial.print("1"); // Send ASCII character.
+	 Serial.write(0x01); // Hex number.
+	 Serial.write(1); // Decimal number.
+	 Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
  void sendZero(void)
  /* Send '0' ASCII character, followed by a 0x00 and 0 integers. */
  {
@@ -52,6 +61,9 @@ void loop()
 				break;
 			case 'Z': // Another simple test.
 				sendZero();
+				break;
+			case 'O': // Another simple test.
+				sendOne();
 				break;
 		}
 	}
