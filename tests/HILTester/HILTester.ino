@@ -10,6 +10,7 @@ void sendA(void)
 {
 	Serial.print("A"); // Send ASCII.
 	Serial.write(0x41); // Send binary data.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
 }
 
 void setup()
@@ -20,17 +21,13 @@ void setup()
 }
 
 void loop()
-/* Main loop - wait receive commands to execute a particular test, and delegate
+/* Main loop - wait, receive commands to execute a particular test, and delegate
 * the said test to a particular function. */
 {
 	char cmdChar = '0'; // Which test case to execute. 0 - do nothing.
 	// Wait until there's something in the serial port to read.
 	if (Serial.available() > 0)
 	{
-		// TODO consider using integer command codes: int red = Serial.parseInt();
-
-		// TODO use flush() after print to wait for the outgoing buffer to be cleared
-
 		// Read the incoming serial data.
 		cmdChar = Serial.read();
 		// Execute the chosen test case.
@@ -38,6 +35,7 @@ void loop()
 		{
 			case '0': // Default - do nothing special, use this to make sure that the Arduino is working.
 				Serial.print("Arduino reachable."); // Send ASCII characters.
+				Serial.flush(); // Wait for the outgoing buffer to be cleared.
 				break;
 			case 'A': // Simplest test.
 				sendA();

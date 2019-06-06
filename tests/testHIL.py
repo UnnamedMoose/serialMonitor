@@ -47,9 +47,10 @@ class Tests(unittest.TestCase):
 										bytesize=self.currentByteSize)
 
 		# Check that the port is readable.
+		time.sleep(2) # Need to let the things settle a bit. 1 second won't work.
 		if not sm.commsInterface.checkConnection(self.fixture):
 			self.fixture.close()
-			raise BaseException('Port is unreadable.')
+			raise BaseException('Port {} is unreadable.'.format(self.fixture.port))
 
 		# Check that the Arduino replies with the expected message.
 		self.fixture.write(b'0') # Send the command byte.
@@ -60,7 +61,7 @@ class Tests(unittest.TestCase):
 			timeoutCounter += 1
 			if timeoutCounter == TIMEOUT:
 				self.fixture.close()
-				raise BaseException('Getting test data from the Arduino timed out.')
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte.
 		self.assertEqual(self.fixture.read(20),b'Arduino reachable.',
