@@ -10,6 +10,7 @@ void sendA(void)
 {
 	Serial.print("A"); // Send ASCII.
 	Serial.write(0x41); // Send binary data.
+	Serial.write(65); // ASCII code.
 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
 }
 
