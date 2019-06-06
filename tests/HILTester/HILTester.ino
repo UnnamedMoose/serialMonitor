@@ -5,8 +5,17 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+ void sendZero(void)
+ /* Send '0' ASCII character, followed by a 0x00 and 0 integers. */
+ {
+ 	Serial.print("0"); // Send ASCII character.
+ 	Serial.write(0x00); // Hex number.
+ 	Serial.write(0); // Decimal number.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
 void sendA(void)
-/* Send 'A' character, followed by a 0x41 (corresponding ASCII code). */
+/* Send 'A' character, followed by a 0x41 and 65 (corresponding ASCII code in hex and decimal). */
 {
 	Serial.print("A"); // Send ASCII.
 	Serial.write(0x41); // Send binary data.
@@ -40,6 +49,9 @@ void loop()
 				break;
 			case 'A': // Simplest test.
 				sendA();
+				break;
+			case 'Z': // Another simple test.
+				sendZero();
 				break;
 		}
 	}

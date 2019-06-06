@@ -63,7 +63,7 @@ class Tests(unittest.TestCase):
 				self.fixture.close()
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
-		# Verify the reply to the command byte.
+		# Verify the reply to the command byte if no exception has been raised.
 		self.assertEqual(self.fixture.read(20),b'Arduino reachable.',
 						msg="Arduino hasn't replied with the expected string to the test command.")
 
@@ -89,49 +89,42 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-	# def testRawGoodByte_0(self):
-	# 	""" Send a single raw byte with three different representations of '0'. """
-	# 	self.fixture.write(b'\x00')
-	# 	time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 	rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 	# Should just get whatever we've put in, but in a raw string representation.
-	# 	self.assertEqual(rawOutput[0],'\x00',msg='Expected \\x00.')
-	# 	self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 	# 'raw' option should leave outputBuffer unchanged.
-	# 	self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 	# Should have no warnings.
-	# 	self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 	# The port should be empty now.
-	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
-	#
-	# 	self.fixture.write(b'0')
-	# 	time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 	rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 	# Should just get whatever we've put in, but in a raw string representation.
-	# 	self.assertEqual(rawOutput[0],'0',msg="Expected '0'.")
-	# 	self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 	# 'raw' option should leave outputBuffer unchanged.
-	# 	self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 	# Should have no warnings.
-	# 	self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 	# The port should be empty now.
-	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-	#
-	# 	i=0
-	# 	b=i.to_bytes(1, byteorder='big', signed=False)
-	# 	self.fixture.write(b)
-	# 	time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 	rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 	# Should just get whatever we've put in, but in a raw string representation.
-	# 	self.assertEqual(rawOutput[0],'\x00',msg='Expected \\x00.')
-	# 	self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 	# 'raw' option should leave outputBuffer unchanged.
-	# 	self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 	# Should have no warnings.
-	# 	self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 	# The port should be empty now.
-	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
-	#
+	def testRawGoodByte_0(self):
+		""" Send a three bytes with three different representations of '0'. """
+		self.fixture.write(b'Z') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get '0'00 (ASCII and two integers) in a raw string representation.
+		self.assertEqual(rawOutput[0],'0\x00\x00',msg="Expected '0'\\x00\\x00 ('0'00).")
+		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+		# Verify casting of the received bytes to integers.
+		for i in range(len(rawOutput[0])): # Already asserted it's three bytes. Use it.
+			self.assertTrue(type(rawOutput[0][i])==str,'rawOutput[0][{}] is not string.'.format(i))
+		tempInt=int(rawOutput[0][0]) # Cast the unicode string to integer.
+		self.assertEqual(tempInt,0,msg='tempInt != 0.')
+		tempInt=int.from_bytes(bytes(rawOutput[0][1],'ASCII'), # Cast str to bytes, and bytes to int.
+				byteorder='big',signed=False)
+		self.assertEqual(tempInt,0,msg='tempInt != 0.')
+		tempInt=int.from_bytes(bytes(rawOutput[0][2],'ASCII'), # Cast str to bytes, and bytes to int.
+				byteorder='big',signed=False)
+		self.assertEqual(tempInt,0,msg='tempInt != 0.')
+
 	# def testRawGoodByte_1(self):
 	# 	""" Send a single raw byte with three different representations of '1'. """
 	# 	self.fixture.write(b'\x01')
@@ -176,7 +169,7 @@ class Tests(unittest.TestCase):
 	# 	self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
 	def testRawGoodByte_0x41(self):
-		""" Send a single raw byte with three different representations of
+		""" Send three raw bytes with three different representations of
 		ASCII 'A' = 0x41 = 65. """
 		self.fixture.write(b'A') # Send the command byte to execute this test case.
 		timeoutCounter=0
@@ -188,6 +181,7 @@ class Tests(unittest.TestCase):
 				self.fixture.close()
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
+		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
 		# Should just get 'AAA' in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x41\x41\x41',msg="Expected \\x41\\x41\\x41 ('AAA').")
