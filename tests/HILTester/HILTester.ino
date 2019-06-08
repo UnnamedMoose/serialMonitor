@@ -5,6 +5,24 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void sendASCIITable(void)
+/* Send all ASCII characters from 33 to 126 ('!' to '~'), inclusive. Send each
+byte one at a time formatted in the raw binary representation. */
+{
+	// First visible ASCIIcharacter '!' is number 33 but start from 0.
+	int thisByte = 0;
+
+	while(thisByte<128) // Go through all characters until 0x7f=128.
+						 // Last readable character is '~'=126.
+	{
+	  // Print thisByte unaltered, i.e. the raw binary version of the byte.
+	  Serial.write(thisByte);
+
+	  // Go on to the next character.
+	  thisByte++;
+	}
+}
+
  void sendOne(void)
  /* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
  {
@@ -64,6 +82,9 @@ void loop()
 				break;
 			case 'O': // Another simple test.
 				sendOne();
+				break;
+			case 'S': // Print an entire ASICC table.
+				sendASCIITable();
 				break;
 		}
 	}

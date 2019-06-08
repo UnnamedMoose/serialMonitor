@@ -103,6 +103,8 @@ class Tests(unittest.TestCase):
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
 		# Should get '0'00 (ASCII and two integers) in a raw string representation.
 		self.assertEqual(rawOutput[0],'0\x00\x00',msg="Expected '0'\\x00\\x00 ('0'00).")
 		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
@@ -139,6 +141,8 @@ class Tests(unittest.TestCase):
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
 		# Should get '1'11 (ASCII and two integers) in a raw string representation.
 		self.assertEqual(rawOutput[0],'1\x01\x01',msg="Expected '1'\\x01\\x01 ('1'11).")
 		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
@@ -176,6 +180,8 @@ class Tests(unittest.TestCase):
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
 		# Should just get 'AAA' in a raw string representation.
 		self.assertEqual(rawOutput[0],'\x41\x41\x41',msg="Expected \\x41\\x41\\x41 ('AAA').")
 		self.assertEqual(rawOutput[0],'AAA',msg="Expected 'AAA' (\x41\x41\x41)).") # Both will work.
@@ -187,25 +193,39 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
-	# def testRawGoodByte_fullASCIITable(self):
-	# 	""" Send a valid raw message, one valid ASCII byte at a time. Some will
-	# 	be sent and read as hex codes of bytes, others as ASCII characters. """
-	# 	for i in range(0,128): # From 0x00 to 0x7F.
-	# 		# Avoid implicit casting in the serial module - need to send bytes.
-	# 		self.fixture.write( i.to_bytes(1,byteorder='big',signed=False) )
-	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 		# print(i,rawOutput[0],bytes(chr(i),'ASCII'),chr(i)) # To eyeball the results.
-	# 		# Should just get whatever we've put in, but in a string representation.
-	# 		self.assertEqual(rawOutput[0],chr(i),msg='Expected {}.'.format(chr(i)))
-	# 		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 		# 'raw' option should leave outputBuffer unchanged.
-	# 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 		# Should have no warnings.
-	# 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 		# The port should be empty now.
-	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-	#
+	def testRawGoodByte_fullASCIITable(self):
+		""" Read the entire ASCII table, i.e. integers from 0 to 127 inclusive,
+		all in one go. """
+		self.fixture.write(b'S') # Send the command byte to execute this test case.
+		time.sleep(1) # Wait for the transmission of all the ASCII bytes.
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Prepare the expected results - the entire ASCII table in byte format.
+		allASCIIBytes=b''
+		for i in range(0,128): # From 0x00 to 0x7F.
+			allASCIIBytes += i.to_bytes(1,byteorder='big',signed=False)
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		# Should get allASCIIBytes in a raw string representation. Explicitly
+		# cast rawOutput[0] to bytes to be able to compare to allASCIIBytes.
+		self.assertEqual(bytes(rawOutput[0],'ASCII'),allASCIIBytes,msg="Expected {}.".format(allASCIIBytes))
+		self.assertEqual(len(rawOutput[0]),128,msg='Expected 128 bytes.')
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	# def testRawGoodByte_nonASCIIInts(self):
 	# 	""" Valid raw message - one integer above the ASCII range at a time.
 	# 	Also covers extended ASCII range and unicode Latin script codes. """
