@@ -223,6 +223,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     def onUpdatePorts(self, event):
         """ call the update ports method - need a wrapper to be able to call it during initialisation """
+        logger.debug('Attempting to update avaialble ports.')
         self.updatePorts()
         self.Layout() # makes sure the choice dropdown is big enough to fit all the choice options
 
@@ -240,6 +241,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         # attempt to retrieve the entire contenst of the txtCtrl. If they are
         # an int, use them. otherwise, revert back to the old value and let the
         # user figure out they're making a mistake
+        logger.debug('Attempting to update baud rate.')
         try:
             newValue = int(self.baudRateTxtCtrl.GetValue())
             self.BaudRate = newValue
@@ -252,19 +254,25 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def onUpdateReadDelay(self, event):
         """ Update the rate at which outputs are being read from the serial port
         and restart the timer for the changes to take effect """
+        logger.debug('Attempting to update read delay.')
         try:
             newValue = int(self.readDelayTxtCtrl.GetValue())
             self.readDelay = newValue
             self.parseOutputsTimer.Start(int(self.readDelay))
-        except ValueError:
+            logger.info('Changed read delay to {} ms.'.format(self.readDelay))
+        except ValueError as ve:
             self.readDelayTxtCtrl.SetValue("{:d}".format(self.readDelay))
+            logger.error('ValueError while updating read delay: {}'.format(ve))
 
     def onClearConsole(self, event):
         """ Clear the output/input console """
-        self.logFileTextControl.Clear()
+        logger.debug('Console cleared.')
+		self.logFileTextControl.Clear()
 
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
+        logger.debug('Attempting to open a log file.')
+
         if self.fileLoggerName is None:
             fileDialog=wx.FileDialog(self,"Choose log file",os.getcwd(),
                                     time.strftime("%Y%m%d%H%M%S_SM.log"),
@@ -286,10 +294,13 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             else: # The checkbox should still be checked if we don't stop logging.
                 self.fileLogCheckbox.SetValue(True)
 
-    def onRawOutputTicked(self, event):
+    def onRawOutputTicked(self, event): # FIXME there's no even binding for this method, so it never triggers.
         """ Raw output checkbox status defines whether hex output can also be
         enabled or not. Grey it out when it won't affect the program not to
         confuse the users. """
+        logger.debug('Raw output ticked: {}. Current raw output state: {}.'.format(
+            event.IsChecked(),self.hexOutputCheckbox.GetValue()))
+
         if event.IsChecked(): # Hex output can now be enabled.
             self.hexOutputCheckbox.Enable(True)
         else: # Now hex output won't change anything.
