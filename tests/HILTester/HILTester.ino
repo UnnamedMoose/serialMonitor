@@ -5,6 +5,21 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void sendNonASCII(void)
+/* Send several non-ASCII bytes (128+, 0x80 to 0xFF, i.e. no longer ASCII but
+still one byte.). This also covers extended ASCII range and unicode Latin script
+codes. Send each byte one at a time formatted in the raw binary representation. */
+{
+	// Sequence of bytes to be sent during this test case.
+	int bytesToSend[] = {128,129,130,138,139,143,159,160,161,200,240,254,255};
+
+	for(int i=0;i<13;i++)
+	{
+	  // Send this byte unaltered, i.e. the raw binary version of the byte.
+	  Serial.write(bytesToSend[i]);
+	}
+}
+
 void sendASCIITable(void)
 /* Send all ASCII characters from 33 to 126 ('!' to '~'), inclusive. Send each
 byte one at a time formatted in the raw binary representation. */
@@ -83,8 +98,11 @@ void loop()
 			case 'O': // Another simple test.
 				sendOne();
 				break;
-			case 'S': // Print an entire ASICC table.
+			case 'S': // Send an entire ASICC table.
 				sendASCIITable();
+				break;
+			case 'N': // Send several non-ASICC bytes.
+				sendNonASCII();
 				break;
 		}
 	}

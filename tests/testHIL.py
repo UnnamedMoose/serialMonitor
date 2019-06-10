@@ -226,32 +226,42 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
-	# def testRawGoodByte_nonASCIIInts(self):
-	# 	""" Valid raw message - one integer above the ASCII range at a time.
-	# 	Also covers extended ASCII range and unicode Latin script codes. """
-	# 	# Below are bytes, expected results of the monitor and their decimal
-	# 	# representations up to 255 - getting them programmatically is a bit of
-	# 	# a pain, so use https://www.rapidtables.com/convert/number/hex-to-ascii.html
-	# 	goodHex=[b'\x80',b'\x81',b'\x82',b'\x8A',b'\x8B',b'\x8F',b'\x9F',b'\xA0',
-	# 		b'\xA1',b'\xC8',b'\xF0',b'\xFE',b'\xFF']
-	# 	goodAns=['\x80','\x81','\x82','\x8a','\x8b','\x8f','\x9f','\xa0','\xa1',
-	# 		'\xc8','\xf0','\xfe','\xff']
-	# 	goodDec=[128,129,130,138,139,143,159,160,161,200,240,254,255]
-	# 	for i in range(len(goodDec)): # 0x80 to 0xFF, i.e. no longer ASCII but still one byte.
-	# 		self.fixture.write(goodHex[i])
-	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 		# print(rawOutput[0],goodAns[i],goodDec[i]) # To eyeball the results.
-	# 		# Should just get whatever we've put in, but in a string representation.
-	# 		self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
-	# 		self.assertEqual(len(rawOutput[0]),1,msg='Expected one byte.')
-	# 		# 'raw' option should leave outputBuffer unchanged.
-	# 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 		# Should have no warnings.
-	# 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 		# The port should be empty now.
-	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-	#
+	def testRawGoodByte_nonASCIIInts(self):
+		""" Valid raw message - several integers above the ASCII range at the same
+		time. This test also covers extended ASCII range and unicode Latin script
+		codes. """
+		# Below expected results of the monitor and their decimal
+		# representations up to 255 - getting them programmatically is a bit of
+		# a pain, so use https://www.rapidtables.com/convert/number/hex-to-ascii.html
+		# They are in range 0x80 to 0xFF, i.e. no longer ASCII but still one byte.
+		expectedAns='\x80\x81\x82\x8a\x8b\x8f\x9f\xa0\xa1\xc8\xf0\xfe\xff'
+		expectedDec=[128,129,130,138,139,143,159,160,161,200,240,254,255] # Unused here, only in the Arduino.
+
+		self.fixture.write(b'N') # Send the command byte to execute this test case.
+		time.sleep(1) # Wait for the transmission of all the bytes.
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		# Should get expectedAns in a raw string representation.
+		# expectedAns is also a string, so can compare w/o casting.
+		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	# def testRawGoodBytes_longInts(self):
 	# 	""" Valid raw message - two-byte integers. Expect string representation
 	# 	of both bytes. """
