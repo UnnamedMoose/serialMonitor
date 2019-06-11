@@ -262,9 +262,42 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
+	def testRawGoodBytes_longInts(self):
+		""" Two-byte integers. Expect string representation of both bytes.  """
+		self.fixture.write(b'L') # Send the command byte to execute this test case.
+		time.sleep(1) # Wait for the transmission of all the bytes.
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Prepare the expected results - all the individual bytes.
+		expectedAns=''
+		#TODO the longInts test case doesn't receive the correct no. bytes. Fix it.
+		#TODO it appears that Arduino is only sending 131 bytes while we expect 262,
+		#TODO meaning that the longs aren't sent from the Arduino in full. The problem's there.
+		for i in range(256,65535,500): # 0x0100 to 0xFFFF.
+			expectedAns += ''.join(chr(x) for x in i.to_bytes(2, byteorder='big', signed=False))
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		# Should get expectedAns in a raw string representation.
+		# expectedAns is also a string, so can compare w/o casting.ng.
+		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	# def testRawGoodBytes_longInts(self):
-	# 	""" Valid raw message - two-byte integers. Expect string representation
-	# 	of both bytes. """
 	# 	for i in range(256,65535,500): # 0x0100 to 0xFFFF.
 	# 		sentBytes=i.to_bytes(2, byteorder='big', signed=False)
 	# 		self.fixture.write(sentBytes)
@@ -292,38 +325,44 @@ class Tests(unittest.TestCase):
 	# 		# print(i,''.join(chr(x) for x in sentBytes),rawOutput[0],
 	# 		# 	sentBytes,sentBytes.hex()) # To eyeball the results.
 	#
-	# def testRaw_ByteSequence(self):
-	# 	""" Valid raw message - various sequences of bytes with 0x00 in various
-	# 	places. """
-	# 	# Below are hex bytes sequences and the corresponding expected results of
-	# 	# the monitor - getting them programmatically is a bit of a pain, so use
-	# 	# https://www.rapidtables.com/convert/number/hex-to-ascii.html
-	# 	goodHex=[b'\x80\x81\x82',b'\x80\x00\x82',b'\x80\x82\x00',b'\x00\x80\x82',
-	# 			b'\x80\xA0\x00\x82\xA1',b'\x80\x82\xA1\x00',b'\x00\xA1\x80\x82',
-	# 			b'\x00\xAF\x80\x82',b'\x00\xAF\x00\x00',b'\x00\x00\xAF\x00']
-	# 	goodAns=['\x80\x81\x82','\x80\x00\x82','\x80\x82\x00','\x00\x80\x82',
-	# 			# '¡'=0xA1=0xa1, both hex (with a and A) and str will work.
-	# 			'\x80\xa0\x00\x82¡','\x80\x82\xa1\x00','\x00\xA1\x80\x82',
-	# 			# '¯'=0xaf=0xAF, all thee representations will work.
-	# 			'\x00¯\x80\x82','\x00\xaf\x00\x00','\x00\x00\xaf\x00']
-	# 	noBytes=[3,3,3,3,5,4,4,4,4,4] # No. expected returned bytes.
-	#
-	# 	for i in range(len(goodHex)):
-	# 		# Avoid implicit casting in the serial module - need to send bytes.
-	# 		self.fixture.write(goodHex[i])
-	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 		# print(rawOutput[0],goodAns[i]) # To eyeball the results.
-	# 		# Should just get whatever we've put in, but in a string representation.
-	# 		self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
-	# 		self.assertEqual(len(rawOutput[0]),noBytes[i],msg='Expected {} bytes.'.format(noBytes[i]))
-	# 		# 'raw' option should leave outputBuffer unchanged.
-	# 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 		# Should have no warnings.
-	# 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 		# The port should be empty now.
-	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-	#
+
+	def testRaw_ByteSequence(self):
+		""" Various sequences of bytes with 0x00 in different places.  """
+		# Below are hex bytes sequences and the corresponding expected results of
+		# the monitor - getting them programmatically is a bit of a pain, so use
+		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
+		expectedAnsParts=['\x80\x81\x82\x80\x00\x82\x80\x82\x00\x00\x80\x82',
+						# '¡'=0xA1=0xa1, both hex (with a and A) and str will work.
+						'\x80\xa0\x00\x82¡\x80\x82\xa1\x00\x00\xA1\x80\x82',
+						# '¯'=0xaf=0xAF, all thee representations will work.
+						'\x00¯\x80\x82\x00\xaf\x00\x00\x00\x00\xaf\x00']
+		expectedAns=expectedAnsParts[0]+expectedAnsParts[1]+expectedAnsParts[2]
+
+		self.fixture.write(b'Q') # Send the command byte to execute this test case.
+		time.sleep(1) # Wait for the transmission of all the bytes.
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		# Should get expectedAns in a raw string representation.
+		# expectedAns is also a string, so can compare w/o casting.ng.
+		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 	# def testRaw_OutOfUnicodeRange(self):
 	# 	""" Raw message - a few valid messgages on the border of unicode range,
 	# 	and one that exceeds the valid range (up to 1 114 111=0x10FFFF). """
