@@ -5,6 +5,49 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void sendSequences(void)
+/* Send various sequences of bytes with 0x00 in different places. Send
+each byte one at a time formatted in the raw binary representation. */
+{
+	// Test data from Python test-script. Various end cases.
+	// goodHex=[b'\x80\x81\x82',b'\x80\x00\x82',b'\x80\x82\x00',b'\x00\x80\x82',
+	// b'\x80\xA0\x00\x82\xA1',b'\x80\x82\xA1\x00',b'\x00\xA1\x80\x82',
+	// b'\x00\xAF\x80\x82',b'\x00\xAF\x00\x00',b'\x00\x00\xAF\x00']
+
+	// Send the data one byte at a time.
+ 	Serial.write(0x80);Serial.write(0x81);Serial.write(0x82);
+ 	Serial.write(0x80);Serial.write(0x00);Serial.write(0x82);
+ 	Serial.write(0x80);Serial.write(0x82);Serial.write(0x00);
+	Serial.write(0x00);Serial.write(0x80);Serial.write(0x82);
+	Serial.write(0x80);Serial.write(0xA0);Serial.write(0x00);Serial.write(0x82);Serial.write(0xA1);
+	Serial.write(0x80);Serial.write(0x82);Serial.write(0xA1);Serial.write(0x00);
+	Serial.write(0x00);Serial.write(0xA1);Serial.write(0x80);Serial.write(0x82);
+	Serial.write(0x00);Serial.write(0xAF);Serial.write(0x80);Serial.write(0x82);
+	Serial.write(0x00);Serial.write(0xAF);Serial.write(0x00);Serial.write(0x00);
+	Serial.write(0x00);Serial.write(0x00);Serial.write(0xAF);Serial.write(0x00);
+
+	// Wait for the outgoing buffer to be cleared.
+ 	Serial.flush();
+}
+
+void sendLongs(void)
+/* Send two-byte integers from 256 to 65535 inclusive (0x0100 to 0xFFFF). Do it
+in steps of 500 to speed up the test w/o loss of generality and end cases. Send
+each long one at a time formatted in the raw binary representation. */
+{
+	long thisByte = 256; // 0x0100, smallest two-byte int.
+
+	while(thisByte<65535) // Go through all ints until 0xFFFFF.
+	{
+		// Print thisByte unaltered, i.e. the raw binary version of the byte.
+		Serial.write(thisByte);
+		Serial.flush(); // Wait for the outgoing buffer to be cleared.
+
+		// Go on to the next long but in large steps to speed things up.
+		thisByte+=500;
+	}
+}
+
 void sendNonASCII(void)
 /* Send several non-ASCII bytes (128+, 0x80 to 0xFF, i.e. no longer ASCII but
 still one byte.). This also covers extended ASCII range and unicode Latin script
@@ -17,6 +60,7 @@ codes. Send each byte one at a time formatted in the raw binary representation. 
 	{
 	  // Send this byte unaltered, i.e. the raw binary version of the byte.
 	  Serial.write(bytesToSend[i]);
+	  Serial.flush(); // Wait for the outgoing buffer to be cleared.
 	}
 }
 
@@ -32,29 +76,30 @@ byte one at a time formatted in the raw binary representation. */
 	{
 	  // Print thisByte unaltered, i.e. the raw binary version of the byte.
 	  Serial.write(thisByte);
+	  Serial.flush(); // Wait for the outgoing buffer to be cleared.
 
 	  // Go on to the next character.
 	  thisByte++;
 	}
 }
 
- void sendOne(void)
- /* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
- {
-	 Serial.print("1"); // Send ASCII character.
-	 Serial.write(0x01); // Hex number.
-	 Serial.write(1); // Decimal number.
-	 Serial.flush(); // Wait for the outgoing buffer to be cleared.
- }
+void sendOne(void)
+/* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
+{
+	Serial.print("1"); // Send ASCII character.
+	Serial.write(0x01); // Hex number.
+	Serial.write(1); // Decimal number.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
 
- void sendZero(void)
- /* Send '0' ASCII character, followed by a 0x00 and 0 integers. */
- {
- 	Serial.print("0"); // Send ASCII character.
- 	Serial.write(0x00); // Hex number.
- 	Serial.write(0); // Decimal number.
- 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
- }
+void sendZero(void)
+/* Send '0' ASCII character, followed by a 0x00 and 0 integers. */
+{
+	Serial.print("0"); // Send ASCII character.
+	Serial.write(0x00); // Hex number.
+	Serial.write(0); // Decimal number.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
 
 void sendA(void)
 /* Send 'A' character, followed by a 0x41 and 65 (corresponding ASCII code in hex and decimal). */
@@ -103,6 +148,12 @@ void loop()
 				break;
 			case 'N': // Send several non-ASICC bytes.
 				sendNonASCII();
+				break;
+			case 'L': // Send two-byte integers.
+				sendLongs();
+				break;
+			case 'Q': // Send sequences of bytes.
+				sendSequences();
 				break;
 		}
 	}
