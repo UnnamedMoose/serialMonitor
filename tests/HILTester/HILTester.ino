@@ -5,6 +5,18 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void sendOutOfRange(void)
+/* Send three messgages, one of which (0x110000 = 0x10FFFF+1) exceeds Unicode
+range in Python 3. */
+{
+	Serial.write(0x10FFFE); // Unicode range - 1
+	Serial.write(0x10FFFF); // Unicode range
+	Serial.write(0x110000); // Unicode range + 1
+
+	// Wait for the outgoing buffer to be cleared.
+ 	Serial.flush();
+}
+
 void sendSequences(void)
 /* Send various sequences of bytes with 0x00 in different places. Send
 each byte one at a time formatted in the raw binary representation. */
@@ -154,6 +166,9 @@ void loop()
 				break;
 			case 'Q': // Send sequences of bytes.
 				sendSequences();
+				break;
+			case 'R': // Send one message that exceeds Unicode range (and two others).
+				sendOutOfRange();
 				break;
 		}
 	}

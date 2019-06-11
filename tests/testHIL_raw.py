@@ -363,36 +363,48 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
-	# def testRaw_OutOfUnicodeRange(self):
-	# 	""" Raw message - a few valid messgages on the border of unicode range,
-	# 	and one that exceeds the valid range (up to 1 114 111=0x10FFFF). """
-	# 	# Below are integers and the corresponding expected results of
-	# 	# the monitor - getting them programmatically is a bit of a pain, so use
-	# 	# https://www.rapidtables.com/convert/number/hex-to-ascii.html
-	#
-	# 	# 0x110000 = 0x10FFFF+1, exceeds unicode range in Python 3:
-	# 	# https://docs.python.org/3/library/functions.html#chr
-	# 	# However, SerialMonitor will convert bytes one at a time so cannot exceed
-	# 	# the valid unicode range even if we send a larger integer.
-	# 	goodDec=[0x10FFFE,0x10FFFF,0x110000]
-	# 	goodAns=['\x10\xFF\xFE','\x10\xFF\xFF','\x11\x00\x00']
-	#
-	# 	for i in range(len(goodDec)):
-	# 		# Avoid implicit casting in the serial module - need to send bytes.
-	# 		sentBytes=goodDec[i].to_bytes(3,byteorder='big',signed=False)
-	# 		self.fixture.write(sentBytes)
-	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 		# print(rawOutput[0],goodAns[i]) # To eyeball the results.
-	# 		# Should just get whatever we've put in, but in a string representation.
-	# 		self.assertEqual(rawOutput[0],goodAns[i],msg='Expected {}.'.format(goodAns[i]))
-	# 		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes')
-	# 		# 'raw' option should leave outputBuffer unchanged.
-	# 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 		# Should have no warnings.
-	# 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 		# The port should be empty now.
-	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+	def testRaw_OutOfUnicodeRange(self):
+		""" Raw message - a few valid messgages on the border of unicode range,
+		and one that exceeds the valid range (up to 1 114 111=0x10FFFF). """
+		# Below are integers and the corresponding expected results of
+		# the monitor - getting them programmatically is a bit of a pain, so use
+		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
+		# 0x110000 = 0x10FFFF+1, exceeds unicode range in Python 3:
+		# https://docs.python.org/3/library/functions.html#chr
+		# However, SerialMonitor will convert bytes one at a time so cannot exceed
+		# the valid unicode range even if we send a larger integer.
+		expectedAnsParts=['\x10\xFF\xFE','\x10\xFF\xFF','\x11\x00\x00']
+		expectedAns=expectedAnsParts[0]+expectedAnsParts[1]+expectedAnsParts[2]
+		goodDec=[0x10FFFE,0x10FFFF,0x110000] # Unused here, only in the Arduino.
+
+		self.fixture.write(b'R') # Send the command byte to execute this test case.
+		time.sleep(1) # Wait for the transmission of all the bytes.
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		#TODO the out of Unicode range test case doesn't receive the correct no.
+		#TODO bytes = get three instead of nine (0xfe,0xff,0x00). Apparently,
+		#TODO Arduino isn't sending the test data correctly as in the long ints case.
+
+		# Verify the reply to the command byte if no exception has been raised.
+		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		# Should get a string output.
+		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		# Should get expectedAns in a raw string representation.
+		# expectedAns is also a string, so can compare w/o casting.ng.
+		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'raw' option should leave outputBuffer unchanged.
+		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Should have no warnings.
+		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
 if __name__ == '__main__':
 	unittest.main()
