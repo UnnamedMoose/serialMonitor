@@ -121,10 +121,10 @@ class Tests(unittest.TestCase):
 		tempInt=int(rawOutput[0][0]) # Cast the unicode string to integer.
 		self.assertEqual(tempInt,0,msg='tempInt != 0.')
 		tempInt=int.from_bytes(bytes(rawOutput[0][1],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='big',signed=False)
+				byteorder='little',signed=False)
 		self.assertEqual(tempInt,0,msg='tempInt != 0.')
 		tempInt=int.from_bytes(bytes(rawOutput[0][2],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='big',signed=False)
+				byteorder='little',signed=False)
 		self.assertEqual(tempInt,0,msg='tempInt != 0.')
 
 	def testRawGoodByte_1(self):
@@ -159,10 +159,10 @@ class Tests(unittest.TestCase):
 		tempInt=int(rawOutput[0][0]) # Cast the unicode string to integer.
 		self.assertEqual(tempInt,1,msg='tempInt != 1.')
 		tempInt=int.from_bytes(bytes(rawOutput[0][1],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='big',signed=False)
+				byteorder='little',signed=False)
 		self.assertEqual(tempInt,1,msg='tempInt != 1.')
 		tempInt=int.from_bytes(bytes(rawOutput[0][2],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='big',signed=False)
+				byteorder='little',signed=False)
 		self.assertEqual(tempInt,1,msg='tempInt != 1.')
 
 	def testRawGoodByte_0x41(self):
@@ -209,7 +209,7 @@ class Tests(unittest.TestCase):
 		# Prepare the expected results - the entire ASCII table in byte format.
 		allASCIIBytes=b''
 		for i in range(0,128): # From 0x00 to 0x7F.
-			allASCIIBytes += i.to_bytes(1,byteorder='big',signed=False)
+			allASCIIBytes += i.to_bytes(1,byteorder='little',signed=False)
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
