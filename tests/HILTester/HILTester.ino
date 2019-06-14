@@ -5,13 +5,27 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void serialSendLong(long f)
+/* Send a 16-bit long integer number via serial connection, one
+byte at a time. The serial connection must be initialised with the desired baud
+rate before calling this function. */
+{
+	byte* b = (byte *) &f; // Cast the long to a byte array (size 2 bytes = 16 bits).
+	for(int i=0;i<2;i++)
+	{
+		Serial.write(b[i]); // Send each byte at a time.
+	}
+}
+
 void sendOutOfRange(void)
 /* Send three messgages, one of which (0x110000 = 0x10FFFF+1) exceeds Unicode
 range in Python 3. */
 {
-	Serial.write(0x10FFFE); // Unicode range - 1
-	Serial.write(0x10FFFF); // Unicode range
-	Serial.write(0x110000); // Unicode range + 1
+	// We'll send the following 3-byte numbers: 0x10FFFE,0x10FFFF,0x110000.
+	// Need to send bytes one by one, Serial.write doesn't support larger inputs.
+	Serial.write(0x10);Serial.write(0xFF);Serial.write(0xFE); // Unicode range - 1
+	Serial.write(0x10);Serial.write(0xFF);Serial.write(0xFF); // Unicode range
+	Serial.write(0x11);Serial.write(0x00);Serial.write(0x00); // Unicode range + 1
 
 	// Wait for the outgoing buffer to be cleared.
  	Serial.flush();
@@ -52,7 +66,8 @@ each long one at a time formatted in the raw binary representation. */
 	while(thisByte<65535) // Go through all ints until 0xFFFFF.
 	{
 		// Print thisByte unaltered, i.e. the raw binary version of the byte.
-		Serial.write(thisByte);
+		// Do it one byte at a time.
+		serialSendLong(thisByte);
 		Serial.flush(); // Wait for the outgoing buffer to be cleared.
 
 		// Go on to the next long but in large steps to speed things up.

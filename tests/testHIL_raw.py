@@ -275,12 +275,10 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Prepare the expected results - all the individual bytes.
+		# NOTE - Arduino uses little endian, so be careful with byteorder.
 		expectedAns=''
-		#TODO the longInts test case doesn't receive the correct no. bytes. Fix it.
-		#TODO it appears that Arduino is only sending 131 bytes while we expect 262,
-		#TODO meaning that the longs aren't sent from the Arduino in full. The problem's there.
 		for i in range(256,65535,500): # 0x0100 to 0xFFFF.
-			expectedAns += ''.join(chr(x) for x in i.to_bytes(2, byteorder='big', signed=False))
+			expectedAns += ''.join(chr(x) for x in i.to_bytes(2, byteorder='little', signed=False))
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
@@ -296,35 +294,6 @@ class Tests(unittest.TestCase):
 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
-
-	# def testRawGoodBytes_longInts(self):
-	# 	for i in range(256,65535,500): # 0x0100 to 0xFFFF.
-	# 		sentBytes=i.to_bytes(2, byteorder='big', signed=False)
-	# 		self.fixture.write(sentBytes)
-	# 		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
-	# 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-	# 		# Should just get whatever we've put in, but in a string representation
-	# 		# of the individual bytes we've sent.
-	# 		self.assertEqual(rawOutput[0],''.join(chr(x) for x in sentBytes),
-	# 			msg='Expected {}.'.format(''.join(chr(x) for x in sentBytes)))
-	# 		self.assertEqual(len(rawOutput[0]),2,msg='Expected two bytes.')
-	# 		# 'raw' option should leave outputBuffer unchanged.
-	# 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-	# 		# Should have no warnings.
-	# 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
-	# 		# The port should be empty now.
-	# 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
-	#
-	# 		# Printing certain bytes will cause the terminal to stop refreshing,
-	# 		# but the tests will continue. It isn't clear why that's the case,
-	# 		# it takes place for these integers: 15256 and 26256. The first byte
-	# 		# of these integers (0x3B and 0x66) gets printed correctly as ';' and
-	# 		# 'f'. But the second byte isn't printed. In both cases, it's some
-	# 		# weird symbol, like a star (0x90) or a box (0x90). So it's probably
-	# 		# an issue with the terminal, not this test or SerialMonitor.
-	# 		# print(i,''.join(chr(x) for x in sentBytes),rawOutput[0],
-	# 		# 	sentBytes,sentBytes.hex()) # To eyeball the results.
-	#
 
 	def testRaw_ByteSequence(self):
 		""" Various sequences of bytes with 0x00 in different places.  """
@@ -386,10 +355,6 @@ class Tests(unittest.TestCase):
 			if timeoutCounter == TIMEOUT:
 				self.fixture.close()
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
-
-		#TODO the out of Unicode range test case doesn't receive the correct no.
-		#TODO bytes = get three instead of nine (0xfe,0xff,0x00). Apparently,
-		#TODO Arduino isn't sending the test data correctly as in the long ints case.
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
