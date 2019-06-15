@@ -148,14 +148,11 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 						# we specifically want ASCII.
 						raise UnicodeDecodeError('SM',dataStr,i,i+1,'Outside of ASCII range, i.e. >=128.')
 				except UnicodeDecodeError as uderr:
-					#TODO the error will be overwritten when sending more than one
-					# invlaid byte - using the same dict key. Suggest adding current
-					# len(warningSummary) to the disct key.
-
 					# Sometimes rubbish gets fed to the serial port.
-					# Log the error and the line that caused it.
-					warningSummary["UnicodeDecodeError"] = \
-					"UnicodeDecodeError :( with character:\n\t{}".format(dataStr[i])
+					# Log the error and the line that caused it. Include index
+					# of every error to keep track of all the encountered errors.
+					warningSummary['UnicodeDecodeError{}'.format(len(warningSummary))] = \
+					'UnicodeDecodeError :( with character:\n\t{}'.format(dataStr[i])
 
 			# Extract any full lines and log them - there can be more than
 			# one, depending on the loop frequencies on either side of the

@@ -373,9 +373,8 @@ class Tests(unittest.TestCase):
 		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
 		# Will not change the outputBuffer if there's an invalid byte sent.
 		self.assertEqual(formattedOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
-		#FIXME Check message length when the bug is fixed.
-		# Should have two warnings.
-		#FIXME there's a bug here, SM will not detect how many invalid bytes it reads. It will just record a single error.
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected 0 characters.')
+		self.assertEqual(len(formattedOutput[1]),len('DummyBuff'),msg='Expected {} characters.'.format(len('DummyBuff')))
 		self.assertEqual(len(formattedOutput[2]),2,msg='Expected two warnings in the dict.')
 		print(formattedOutput[2]) # To eyeball the results.
 		# The port should be empty now.
@@ -418,7 +417,7 @@ class Tests(unittest.TestCase):
 	# port.inWaiting==0, should return the input outputBuffer - (empty dataStr)     DONE
 	# test formatted output with:
 		# 1) valid ASCII characters,                                                DONE
-		# 2) invalid ASCII characters,                                              BUG
+		# 2) invalid ASCII characters,                                              DONE
 		# 3) valid numbers,                                                         DONE
 		# 4) empty dataStr,                                                         DONE
 		# 5) valid and invalid formatitng of the dataStr (bytes with and            DONE
