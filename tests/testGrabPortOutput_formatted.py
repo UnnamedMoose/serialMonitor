@@ -390,9 +390,8 @@ class Tests(unittest.TestCase):
 		# output will be empty if there is no EOL termination of the message.
 		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
 		# Should append the valid byte to outputBuffer (no EOL termination), and discard the invalid byte.
-		#FIXME there's a bug here, SM will discard an entire message if it containes an invalid byte.
 		self.assertEqual(formattedOutput[1],'DummyBuff\x7F',msg='Expected DummyBuff\\x7F.')
-		#FIXME Check message length when the bug is fixed.
+		self.assertEqual(len(formattedOutput[1]),len('DummyBuff')+1,msg='Expected {} characters.'.format(len('DummyBuff')+1))
 		# Should have one warning.
 		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
 		# print(formattedOutput[2]) # To eyeball the results.
@@ -408,9 +407,8 @@ class Tests(unittest.TestCase):
 		# output will be empty if there is no EOL termination of the message.
 		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
 		# Should append the valid byte to outputBuffer (no EOL termination), and discard the invalid byte.
-		#FIXME there's a bug here, SM will discard an entire message if it containes an invalid byte.
 		self.assertEqual(formattedOutput[1],'DummyBuff\x7F',msg='Expected DummyBuff\\x7F.')
-		#FIXME Check message length when the bug is fixed.
+		self.assertEqual(len(formattedOutput[1]),len('DummyBuff')+1,msg='Expected {} characters.'.format(len('DummyBuff')+1))
 		# Should have one warning.
 		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
 		# print(formattedOutput[2]) # To eyeball the results.

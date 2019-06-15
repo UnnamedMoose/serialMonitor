@@ -136,35 +136,41 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 
 		# Processed and (arguably) nicely formatted output.
 		if outputFormat == "formatted":
-			try:
-				#TODO trying to decode the entire dataStr to ASCII will discard
-				# all the bytes contained therein even if only one of them is invalid.
-				outputBuffer += dataStr.decode('ascii')
+			# Trying to decode the entire dataStr to ASCII will discard all the
+			# bytes contained therein even if only one of them is invalid. Thus,
+			# go through each byte in dataStr one by one.
+			for i in range(len(dataStr)): # Need the index of the bye to cast an error, if need be.
+				try:
+					if dataStr[i] < 128: # Valid ASCII character.
+						outputBuffer += chr(dataStr[i])
+					else: # Not in ASCII range. chr() will cope with this becuase
+						# it convers to Unicode, which has a larger range but here
+						# we specifically want ASCII.
+						raise UnicodeDecodeError('SM',dataStr,i,i+1,'Outside of ASCII range, i.e. >=128.')
+				except UnicodeDecodeError as uderr:
+					#TODO the error will be overwritten when sending more than one
+					# invlaid byte - using the same dict key. Suggest adding current
+					# len(warningSummary) to the disct key.
 
-				# Extract any full lines and log them - there can be more than
-				# one, depending on the loop frequencies on either side of the
-				# serial conneciton
-				lines = outputBuffer.rpartition("\n")
-				if lines[0]: # lines[0] = complete lines terminated with '\n'.
-					for line in lines[0].split("\n"):
-						output += "{}\n".format(line)
+					# Sometimes rubbish gets fed to the serial port.
+					# Log the error and the line that caused it.
+					warningSummary["UnicodeDecodeError"] = \
+					"UnicodeDecodeError :( with character:\n\t{}".format(dataStr[i])
 
-					# Keep the remaining output in buffer if there are no EOL characters
-					# in it. This is useful if only part of a message was received on last
-					# buffer update.
-					outputBuffer = lines[2] # lines[2] = Remainder after the
-						# last '\n' and not terminated with '\n'.
-						# lines[1] = '\n'
+			# Extract any full lines and log them - there can be more than
+			# one, depending on the loop frequencies on either side of the
+			# serial conneciton
+			lines = outputBuffer.rpartition("\n")
+			if lines[0]: # lines[0] = complete lines terminated with '\n'.
+				for line in lines[0].split("\n"):
+					output += "{}\n".format(line)
 
-			except UnicodeDecodeError as uderr:
-				#TODO the error will be overwritten when sending more than one
-				# invlaid byte - using the same dict key. Suggest adding current
-				# len(warningSummary) to the disct key.
-
-				# Sometimes rubbish gets fed to the serial port.
-				# Log the error and the line that caused it.
-				warningSummary["UnicodeDecodeError"] = \
-					"UnicodeDecodeError :( with string:\n\t{}".format(dataStr)
+				# Keep the remaining output in buffer if there are no EOL characters
+				# in it. This is useful if only part of a message was received on last
+				# buffer update.
+				outputBuffer = lines[2] # lines[2] = Remainder after the
+					# last '\n' and not terminated with '\n'.
+					# lines[1] = '\n'
 
 		# Raw but not formatted output.
 		elif outputFormat == "raw":
