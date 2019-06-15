@@ -267,7 +267,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def onClearConsole(self, event):
         """ Clear the output/input console """
         logger.debug('Console cleared.')
-		self.logFileTextControl.Clear()
+        self.logFileTextControl.Clear()
 
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
