@@ -376,7 +376,11 @@ class Tests(unittest.TestCase):
 		self.assertEqual(len(formattedOutput[0]),0,msg='Expected 0 characters.')
 		self.assertEqual(len(formattedOutput[1]),len('DummyBuff'),msg='Expected {} characters.'.format(len('DummyBuff')))
 		self.assertEqual(len(formattedOutput[2]),2,msg='Expected two warnings in the dict.')
-		print(formattedOutput[2]) # To eyeball the results.
+		# Check that the error dict has the expected keys. N.B. dicts are unordered
+		# so don't know which key will be at what index.
+		self.assertIn('UnicodeDecodeError9',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		self.assertIn('UnicodeDecodeError1',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError1 in the dict keys.')
+		# print(formattedOutput[2]) # To eyeball the results.
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
