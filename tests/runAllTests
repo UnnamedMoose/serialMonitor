@@ -1,0 +1,66 @@
+#!/bin/bash
+# Run all the tests and collect the output of all of them and list only the tests that failed.
+# for f in $(ls ./test*.py -1); do echo "Running $f."; echo | python3.4 $f; done > testing.log 2>&1
+startTime=$(date +"%d %b %y %T")
+noTestRun=0
+echo "$startTime: started automatic testing." > testing.log # Reset the file contents.
+echo "--------------------------------------------------------------"
+echo "$startTime: started automatic testing."
+echo "--------------------------------------------------------------"
+
+for f in $(ls ./test*.py -1);
+do
+	echo "Running $f."; # This is going to let us know the tests are running.
+	# Be extra careful with this test.
+	if [[ "$f" == "./testHIL_raw.py" ]]; then
+		echo "The following test requires Arduino to be connected."
+		read -p "DO YOU WISH TO CONTINUE? (default no) " -n 1 -r
+		echo # Add an empty line.
+		if [[ $REPLY =~ ^[Yy]$ ]]; then # Proceed if the user wants to.
+			echo "User chose to run the test."
+		    echo | python3 $f >> testing.log 2>&1
+			noTestRun=$((noTestRun + 1))
+		else
+			echo "User chose not to run the test."
+		fi
+	else # Just run the test.
+		# Don't spam the terminal output,
+		# only append to the file to keep the previous filters' output.
+		echo | python3 $f >> testing.log 2>&1
+		noTestRun=$((noTestRun + 1))
+	fi
+done
+endTime=$(date +"%d %b %y %T")
+echo "$endTime: finished automatic testing, ran $noTestRun tests.">> testing.log
+echo "--------------------------------------------------------------"
+echo "$endTime: finished automatic testing."
+echo "--------------------------------------------------------------"
+
+# List the tests that failed and shouldn't have.
+noFailures=$(grep -o 'FAIL:' testing.log | wc -l)
+echo "--------------------------------------------------------------"
+echo "$noFailures tests that failed are:"
+echo "--------------------------------------------------------------"
+if [[ "$noFailures" -gt "0" ]]; then
+	echo | grep -A 1 "FAIL:" ./testing.log; # List 3 lines following the match to add context.
+else
+	echo # Add an empty line to make it look pretty if there's nothing else to print.
+fi
+
+# Only report test errors, not every error during execution (they are handled)
+# or AssertionErrors that cause failures.
+noErrors=$(grep -o 'ERROR:' testing.log | wc -l)
+echo "--------------------------------------------------------------"
+echo "$noErrors errors that occurred are:"
+echo "--------------------------------------------------------------"
+if [[ "$noErrors" -gt "0" ]]; then
+	echo | grep "ERROR:" ./testing.log
+else
+	echo # Add an empty line to make it look pretty if there's nothing else to print.
+fi
+
+echo "------------------------------------------------------------------------------"
+echo "TEST SUMMARY ($noTestRun test sets)- reducing order of importance of failures."
+echo "------------------------------------------------------------------------------"
+echo "ERRORS: $noErrors"
+echo "FAILURES: $noFailures"

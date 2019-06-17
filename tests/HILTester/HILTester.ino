@@ -5,23 +5,128 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
- void sendOne(void)
- /* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
- {
-	 Serial.print("1"); // Send ASCII character.
-	 Serial.write(0x01); // Hex number.
-	 Serial.write(1); // Decimal number.
-	 Serial.flush(); // Wait for the outgoing buffer to be cleared.
- }
+void serialSendLong(long f)
+/* Send a 16-bit long integer number via serial connection, one
+byte at a time. The serial connection must be initialised with the desired baud
+rate before calling this function. */
+{
+	byte* b = (byte *) &f; // Cast the long to a byte array (size 2 bytes = 16 bits).
+	for(int i=0;i<2;i++)
+	{
+		Serial.write(b[i]); // Send each byte at a time.
+	}
+}
 
- void sendZero(void)
- /* Send '0' ASCII character, followed by a 0x00 and 0 integers. */
- {
- 	Serial.print("0"); // Send ASCII character.
- 	Serial.write(0x00); // Hex number.
- 	Serial.write(0); // Decimal number.
- 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
- }
+void sendOutOfRange(void)
+/* Send three messgages, one of which (0x110000 = 0x10FFFF+1) exceeds Unicode
+range in Python 3. */
+{
+	// We'll send the following 3-byte numbers: 0x10FFFE,0x10FFFF,0x110000.
+	// Need to send bytes one by one, Serial.write doesn't support larger inputs.
+	Serial.write(0x10);Serial.write(0xFF);Serial.write(0xFE); // Unicode range - 1
+	Serial.write(0x10);Serial.write(0xFF);Serial.write(0xFF); // Unicode range
+	Serial.write(0x11);Serial.write(0x00);Serial.write(0x00); // Unicode range + 1
+
+	// Wait for the outgoing buffer to be cleared.
+ 	Serial.flush();
+}
+
+void sendSequences(void)
+/* Send various sequences of bytes with 0x00 in different places. Send
+each byte one at a time formatted in the raw binary representation. */
+{
+	// Test data from Python test-script. Various end cases.
+	// goodHex=[b'\x80\x81\x82',b'\x80\x00\x82',b'\x80\x82\x00',b'\x00\x80\x82',
+	// b'\x80\xA0\x00\x82\xA1',b'\x80\x82\xA1\x00',b'\x00\xA1\x80\x82',
+	// b'\x00\xAF\x80\x82',b'\x00\xAF\x00\x00',b'\x00\x00\xAF\x00']
+
+	// Send the data one byte at a time.
+ 	Serial.write(0x80);Serial.write(0x81);Serial.write(0x82);
+ 	Serial.write(0x80);Serial.write(0x00);Serial.write(0x82);
+ 	Serial.write(0x80);Serial.write(0x82);Serial.write(0x00);
+	Serial.write(0x00);Serial.write(0x80);Serial.write(0x82);
+	Serial.write(0x80);Serial.write(0xA0);Serial.write(0x00);Serial.write(0x82);Serial.write(0xA1);
+	Serial.write(0x80);Serial.write(0x82);Serial.write(0xA1);Serial.write(0x00);
+	Serial.write(0x00);Serial.write(0xA1);Serial.write(0x80);Serial.write(0x82);
+	Serial.write(0x00);Serial.write(0xAF);Serial.write(0x80);Serial.write(0x82);
+	Serial.write(0x00);Serial.write(0xAF);Serial.write(0x00);Serial.write(0x00);
+	Serial.write(0x00);Serial.write(0x00);Serial.write(0xAF);Serial.write(0x00);
+
+	// Wait for the outgoing buffer to be cleared.
+ 	Serial.flush();
+}
+
+void sendLongs(void)
+/* Send two-byte integers from 256 to 65535 inclusive (0x0100 to 0xFFFF). Do it
+in steps of 500 to speed up the test w/o loss of generality and end cases. Send
+each long one at a time formatted in the raw binary representation. */
+{
+	long thisByte = 256; // 0x0100, smallest two-byte int.
+
+	while(thisByte<65535) // Go through all ints until 0xFFFFF.
+	{
+		// Print thisByte unaltered, i.e. the raw binary version of the byte.
+		// Do it one byte at a time.
+		serialSendLong(thisByte);
+		Serial.flush(); // Wait for the outgoing buffer to be cleared.
+
+		// Go on to the next long but in large steps to speed things up.
+		thisByte+=500;
+	}
+}
+
+void sendNonASCII(void)
+/* Send several non-ASCII bytes (128+, 0x80 to 0xFF, i.e. no longer ASCII but
+still one byte.). This also covers extended ASCII range and unicode Latin script
+codes. Send each byte one at a time formatted in the raw binary representation. */
+{
+	// Sequence of bytes to be sent during this test case.
+	int bytesToSend[] = {128,129,130,138,139,143,159,160,161,200,240,254,255};
+
+	for(int i=0;i<13;i++)
+	{
+	  // Send this byte unaltered, i.e. the raw binary version of the byte.
+	  Serial.write(bytesToSend[i]);
+	  Serial.flush(); // Wait for the outgoing buffer to be cleared.
+	}
+}
+
+void sendASCIITable(void)
+/* Send all ASCII characters from 33 to 126 ('!' to '~'), inclusive. Send each
+byte one at a time formatted in the raw binary representation. */
+{
+	// First visible ASCIIcharacter '!' is number 33 but start from 0.
+	int thisByte = 0;
+
+	while(thisByte<128) // Go through all characters until 0x7f=128.
+						 // Last readable character is '~'=126.
+	{
+	  // Print thisByte unaltered, i.e. the raw binary version of the byte.
+	  Serial.write(thisByte);
+	  Serial.flush(); // Wait for the outgoing buffer to be cleared.
+
+	  // Go on to the next character.
+	  thisByte++;
+	}
+}
+
+void sendOne(void)
+/* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
+{
+	Serial.print("1"); // Send ASCII character.
+	Serial.write(0x01); // Hex number.
+	Serial.write(1); // Decimal number.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendZero(void)
+/* Send '0' ASCII character, followed by a 0x00 and 0 integers. */
+{
+	Serial.print("0"); // Send ASCII character.
+	Serial.write(0x00); // Hex number.
+	Serial.write(0); // Decimal number.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
 
 void sendA(void)
 /* Send 'A' character, followed by a 0x41 and 65 (corresponding ASCII code in hex and decimal). */
@@ -64,6 +169,21 @@ void loop()
 				break;
 			case 'O': // Another simple test.
 				sendOne();
+				break;
+			case 'S': // Send an entire ASICC table.
+				sendASCIITable();
+				break;
+			case 'N': // Send several non-ASICC bytes.
+				sendNonASCII();
+				break;
+			case 'L': // Send two-byte integers.
+				sendLongs();
+				break;
+			case 'Q': // Send sequences of bytes.
+				sendSequences();
+				break;
+			case 'R': // Send one message that exceeds Unicode range (and two others).
+				sendOutOfRange();
 				break;
 		}
 	}
