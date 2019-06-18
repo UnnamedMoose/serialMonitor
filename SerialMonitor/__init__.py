@@ -269,6 +269,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         logger.debug('Console cleared.')
         self.logFileTextControl.Clear()
 
+#TODO FIXME BUG onToggleLogFile method is never called! Logging to file cannot be enabled.
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
         logger.debug('Attempting to open a log file.')
@@ -294,7 +295,8 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             else: # The checkbox should still be checked if we don't stop logging.
                 self.fileLogCheckbox.SetValue(True)
 
-    def onRawOutputTicked(self, event): # FIXME there's no even binding for this method, so it never triggers.
+#TODO FIXME BUG there's not even a binding for onRawOutputTicked method, so it never triggers and hex output is never enablex.
+    def onRawOutputTicked(self, event):
         """ Raw output checkbox status defines whether hex output can also be
         enabled or not. Grey it out when it won't affect the program not to
         confuse the users. """
@@ -432,6 +434,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         # scroll to the end of the box
         self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
         # re-set colour to default
+#TODO FIXME BUG EndTextColour() call is causing the log to be flooded with "Debug: Too many EndStyle calls!"
         self.logFileTextControl.EndTextColour()
 
     def sendMessage(self, msg):
@@ -565,6 +568,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
     def OnInit(self):
+#TODO Maybe should call the parent wx.App.OnInit method here?
         self.frame = serialMonitorGuiMainFrame()
         self.SetTopWindow(self.frame)
         self.frame.Show(True)
