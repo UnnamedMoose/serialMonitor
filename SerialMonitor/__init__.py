@@ -454,12 +454,12 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         # make sure the connection has not been broken
         if self.portOpen:
             if self.checkConnection():
-                # send the message; need to pass as a regular string to avoid compatibility
+                # Send the message; need to pass as a regular string to avoid compatibility
                 # issues with new wxWidgets which use unicode string formatting
                 # Convert msg to bytes, then pass to serial.
                 self.currentSerialConnection.write(msg.encode('utf-8'))
-                # log in the main display box
-                self.writeToTextBox(msg)
+                # Log in the main display box in new line and in blue to make sure it stands out.
+                self.writeToTextBox(msg+'\n',prepend='\nOUT: ',colour=(0,0,255))
                 # Log the sent command.
                 logger.info(r'OUT: {}'.format(msg))
 
@@ -496,7 +496,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 #                     self.writeToTextBox(msg+"\n")
                 #                     logger.info(line)
                 #
-                #                     # TODO TODO TODO
                 #                     # this is where one can pass the outputs to where they need to go
                 #
                 #                 # Keep the remaining output in buffer if there are no EOL characters
