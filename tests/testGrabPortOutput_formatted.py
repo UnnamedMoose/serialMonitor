@@ -378,7 +378,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(len(formattedOutput[2]),2,msg='Expected two warnings in the dict.')
 		# Check that the error dict has the expected keys. N.B. dicts are unordered
 		# so don't know which key will be at what index.
-		self.assertIn('UnicodeDecodeError9',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
 		self.assertIn('UnicodeDecodeError1',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError1 in the dict keys.')
 		# print(formattedOutput[2]) # To eyeball the results.
 		# The port should be empty now.
@@ -397,6 +397,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(len(formattedOutput[1]),len('DummyBuff')+1,msg='Expected {} characters.'.format(len('DummyBuff')+1))
 		# Should have one warning.
 		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
 		# print(formattedOutput[2]) # To eyeball the results.
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
@@ -414,6 +415,7 @@ class Tests(unittest.TestCase):
 		self.assertEqual(len(formattedOutput[1]),len('DummyBuff')+1,msg='Expected {} characters.'.format(len('DummyBuff')+1))
 		# Should have one warning.
 		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
 		# print(formattedOutput[2]) # To eyeball the results.
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
