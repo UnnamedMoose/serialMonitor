@@ -422,20 +422,25 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             colour (int tuple, len=3, default=(0,0,0)) - RGB colour of text
         """
 
-        # move the cursor to the end of the box
+        # Move the cursor to the end of the box
         self.logFileTextControl.MoveEnd()
-        # set colour if needed
+
+        # Set colour if needed
         if colour != (0,0,0):
             self.logFileTextControl.BeginTextColour(colour)
-        # add the message
+
+		# Write the message, with a preamble if desired.
         if len(prepend) > 0:
-            prepend = "{}: ".format(prepend)
+            prepend = "{}: ".format(prepend) # Format the desired preamble nicely.
         self.logFileTextControl.WriteText(r'{}{}'.format(prepend, msg))
-        # scroll to the end of the box
+
+		# Scroll to the end of the box.
         self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
-        # re-set colour to default
-#TODO FIXME BUG EndTextColour() call is causing the log to be flooded with "Debug: Too many EndStyle calls!"
-        self.logFileTextControl.EndTextColour()
+
+        # Re-set colour to default but only if it's been changed to avoid WX
+		# warning 'Debug: Too many EndStyle calls!"'.
+        if colour != (0,0,0):
+            self.logFileTextControl.EndTextColour()
 
     def sendMessage(self, msg):
         """ Sends a message to the port via the serial conneciton, but also takes
