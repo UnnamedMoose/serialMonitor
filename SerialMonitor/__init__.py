@@ -546,16 +546,15 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 output, self.serialOutputBuffer, warningSummary = commsInterface.grabPortOutput(
                     self.currentSerialConnection, self.serialOutputBuffer, outputFormat)
 
-                # log and print received data in the text box
-                # FIXME Artur: need to double check that it will all print ok, may need to
-                #   convert raw outputs to strings and/or split at \n characters.
-				#TODO output might be casted inside self.logFileTextControl.WriteText
-				#	amd cause UnicodeDecodeErrors. It should be fine because output is
-				#	a string, which is Unicode in Python 3, but you never know.
-                self.writeToTextBox(output)
-                logger.info(output)
+                # Log and print received data in the text box. output is a string,
+				# which is Unicode in Python 3, so no need to cast.
+				# Only print when there is some message to avoid spamming the logs
+				# with empty lines.
+                if len(output) > 0:
+                    self.writeToTextBox(output)
+                    logger.info(output)
 
-                # handle warnings
+                # Log and print (in red) warnings, if there are any.
                 if len(warningSummary) > 0:
                     for w in warningSummary:
                         self.writeToTextBox("{}, check the log!\n".format(w), colour=(255,0,0))
