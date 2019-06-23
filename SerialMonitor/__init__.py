@@ -269,6 +269,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         logger.debug('Console cleared.')
         self.logFileTextControl.Clear()
 
+#TODO FIXME BUG onToggleLogFile method is never called! Logging to file cannot be enabled.
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
         logger.debug('Attempting to open a log file.')
@@ -294,7 +295,8 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             else: # The checkbox should still be checked if we don't stop logging.
                 self.fileLogCheckbox.SetValue(True)
 
-    def onRawOutputTicked(self, event): # FIXME there's no even binding for this method, so it never triggers.
+#TODO FIXME BUG there's not even a binding for onRawOutputTicked method, so it never triggers and hex output is never enablex.
+    def onRawOutputTicked(self, event):
         """ Raw output checkbox status defines whether hex output can also be
         enabled or not. Grey it out when it won't affect the program not to
         confuse the users. """
@@ -420,19 +422,25 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             colour (int tuple, len=3, default=(0,0,0)) - RGB colour of text
         """
 
-        # move the cursor to the end of the box
+        # Move the cursor to the end of the box
         self.logFileTextControl.MoveEnd()
-        # set colour if needed
+
+        # Set colour if needed
         if colour != (0,0,0):
             self.logFileTextControl.BeginTextColour(colour)
-        # add the message
+
+		# Write the message, with a preamble if desired.
         if len(prepend) > 0:
-            prepend = "{}: ".format(prepend)
+            prepend = "{}".format(prepend) # Format the desired preamble nicely.
         self.logFileTextControl.WriteText(r'{}{}'.format(prepend, msg))
-        # scroll to the end of the box
+
+		# Scroll to the end of the box.
         self.logFileTextControl.ShowPosition(self.logFileTextControl.GetLastPosition())
-        # re-set colour to default
-        self.logFileTextControl.EndTextColour()
+
+        # Re-set colour to default but only if it's been changed to avoid WX
+		# warning 'Debug: Too many EndStyle calls!"'.
+        if colour != (0,0,0):
+            self.logFileTextControl.EndTextColour()
 
     def sendMessage(self, msg):
         """ Sends a message to the port via the serial conneciton, but also takes
@@ -446,12 +454,12 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         # make sure the connection has not been broken
         if self.portOpen:
             if self.checkConnection():
-                # send the message; need to pass as a regular string to avoid compatibility
+                # Send the message; need to pass as a regular string to avoid compatibility
                 # issues with new wxWidgets which use unicode string formatting
                 # Convert msg to bytes, then pass to serial.
                 self.currentSerialConnection.write(msg.encode('utf-8'))
-                # log in the main display box
-                self.writeToTextBox(msg)
+                # Log in the main display box in new line and in blue to make sure it stands out.
+                self.writeToTextBox(msg+'\n',prepend='\nOUT: ',colour=(0,0,255))
                 # Log the sent command.
                 logger.info(r'OUT: {}'.format(msg))
 
@@ -488,7 +496,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 #                     self.writeToTextBox(msg+"\n")
                 #                     logger.info(line)
                 #
-                #                     # TODO TODO TODO
                 #                     # this is where one can pass the outputs to where they need to go
                 #
                 #                 # Keep the remaining output in buffer if there are no EOL characters
@@ -538,16 +545,15 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 output, self.serialOutputBuffer, warningSummary = commsInterface.grabPortOutput(
                     self.currentSerialConnection, self.serialOutputBuffer, outputFormat)
 
-                # log and print received data in the text box
-                # FIXME Artur: need to double check that it will all print ok, may need to
-                #   convert raw outputs to strings and/or split at \n characters.
-				#TODO output might be casted inside self.logFileTextControl.WriteText
-				#	amd cause UnicodeDecodeErrors. It should be fine because output is
-				#	a string, which is Unicode in Python 3, but you never know.
-                self.writeToTextBox(output)
-                logger.info(output)
+                # Log and print received data in the text box. output is a string,
+				# which is Unicode in Python 3, so no need to cast.
+				# Only print when there is some message to avoid spamming the logs
+				# with empty lines.
+                if len(output) > 0:
+                    self.writeToTextBox(output)
+                    logger.info(output)
 
-                # handle warnings
+                # Log and print (in red) warnings, if there are any.
                 if len(warningSummary) > 0:
                     for w in warningSummary:
                         self.writeToTextBox("{}, check the log!\n".format(w), colour=(255,0,0))
@@ -565,6 +571,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 # implements the GUI class to run a wxApp
 class serialMonitorGuiApp(wx.App):
     def OnInit(self):
+#TODO Maybe should call the parent wx.App.OnInit method here?
         self.frame = serialMonitorGuiMainFrame()
         self.SetTopWindow(self.frame)
         self.frame.Show(True)
