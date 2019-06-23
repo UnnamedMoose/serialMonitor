@@ -51,16 +51,6 @@ try:
 except:
     __version__ = "unknown_version"
 
-# Create a logger for the application.
-logger = logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
-handler = logging.StreamHandler() # Will output to STDERR.
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-handler.setLevel(logging.ERROR)
-logger.addHandler(handler)
-# TODO Attach the handler to the logger later, when user specifies the level.
-
 class pleaseReconnectDialog(wx.Dialog):
     def __init__(self,parent):
         """ Tells the user to reconnect to the serial port for the new connection
@@ -123,6 +113,16 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         self.fileLoggerName = None # Overwrite with a file name when user chooses to log to a file.
         self.loggingLevel = "ERROR"
 
+        # Create a logger for the application.
+        self.logger = logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
+        self.handler = logging.StreamHandler() # Will output to STDERR.
+        self.logger.setLevel(logging.DEBUG) # Collect all levels in the main logger.
+        self.formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.handler.setFormatter(self.formatter)
+        self.handler.setLevel(self.loggingLevel) # Filter logs at the handler level.
+                                                # Logging to file will log everything.
+        self.logger.addHandler(self.handler)
+
         # serial communication
         self.portOpen = False # indicates if the serial communication port is open
         self.currentPort = 'None' # currently chosen port
@@ -159,7 +159,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         """ close the serial port before terminating, need to make sure it isn't left hanging """
         if self.portOpen:
             self.currentSerialConnection.close()
-            logger.info('Disconnected from port before shutdown.')
+            self.logger.info('Disconnected from port before shutdown.')
         self.Destroy()
 
     def onSendInput(self, event):
@@ -170,7 +170,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     def onChoseSerialPort(self, event):
         """ picks up the newly selected port and attempts to connect to a peripheral device via it """
-        logger.debug('Choosing serial port.')
+        self.logger.debug('Choosing serial port.')
         # ignore the None option
         if self.portChoice.GetStringSelection() != 'None':
             try:
@@ -187,13 +187,13 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                                                                  parity=self.currentParity,
                                                                  bytesize=self.currentByteSize)
 
-                    logger.debug('Checking {}'.format(self.currentSerialConnection))
+                    self.logger.debug('Checking {}'.format(self.currentSerialConnection))
                     if self.checkConnection(): # Try to connnect to the user-selected port.
                         self.portOpen = True
                         self.currentPort = self.portChoice.GetStringSelection()
-                        logger.info('Connected to port {}'.format(self.currentPort))
+                        self.logger.info('Connected to port {}'.format(self.currentPort))
                         # To verify the setting of the serial connection details.
-                        logger.debug('baud={},stop bits={},parity={},byte size={}'.format(
+                        self.logger.debug('baud={},stop bits={},parity={},byte size={}'.format(
                             self.currentSerialConnection.baudrate,
                             self.currentSerialConnection.stopbits,
                             self.currentSerialConnection.parity,
@@ -202,7 +202,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                         wx.MessageBox('Cannot connect to port {}.'.format(
                             self.portChoice.GetStringSelection()), 'Error',
                             wx.OK | wx.ICON_ERROR)
-                        logger.error('Could not connect to port {}'.format(
+                        self.logger.error('Could not connect to port {}'.format(
                             self.portChoice.GetStringSelection()))
                         self.currentSerialConnection = 0
                         self.portOpen = False
@@ -216,7 +216,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 self.portOpen = False
                 self.updatePorts()
                 self.portChoice.SetSelection(0) # Go back to 'None' selection.
-                logger.error('Failed to connect to a port due to {}.'.format(unknonwError))
+                self.logger.error('Failed to connect to a port due to {}.'.format(unknonwError))
 
         # if None is chosen then close the current port
         else:
@@ -224,7 +224,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
     def onUpdatePorts(self, event):
         """ call the update ports method - need a wrapper to be able to call it during initialisation """
-        logger.debug('Attempting to update avaialble ports.')
+        self.logger.debug('Attempting to update avaialble ports.')
         self.updatePorts()
         self.Layout() # makes sure the choice dropdown is big enough to fit all the choice options
 
@@ -242,37 +242,38 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         # attempt to retrieve the entire contenst of the txtCtrl. If they are
         # an int, use them. otherwise, revert back to the old value and let the
         # user figure out they're making a mistake
-        logger.debug('Attempting to update baud rate.')
+        self.logger.debug('Attempting to update baud rate.')
         try:
             newValue = int(self.baudRateTxtCtrl.GetValue())
             self.BaudRate = newValue
             self.notifyToReconnect() # Some people are confused about how this works.
-        except ValueError:
+        except ValueError as ve:
             self.baudRateTxtCtrl.SetValue("{:d}".format(self.BaudRate))
+            self.logger.error('ValueError while updating read delay: {}'.format(ve))
             wx.MessageBox('Please specify integer baud rate','Incorrect baud rate',
                 wx.OK | wx.ICON_WARNING)
 
     def onUpdateReadDelay(self, event):
         """ Update the rate at which outputs are being read from the serial port
         and restart the timer for the changes to take effect """
-        logger.debug('Attempting to update read delay.')
+        self.logger.debug('Attempting to update read delay.')
         try:
             newValue = int(self.readDelayTxtCtrl.GetValue())
             self.readDelay = newValue
             self.parseOutputsTimer.Start(int(self.readDelay))
-            logger.info('Changed read delay to {} ms.'.format(self.readDelay))
+            self.logger.info('Changed read delay to {} ms.'.format(self.readDelay))
         except ValueError as ve:
             self.readDelayTxtCtrl.SetValue("{:d}".format(self.readDelay))
-            logger.error('ValueError while updating read delay: {}'.format(ve))
+            self.logger.error('ValueError while updating read delay: {}'.format(ve))
 
     def onClearConsole(self, event):
         """ Clear the output/input console """
-        logger.debug('Console cleared.')
+        self.logger.debug('Console cleared.')
         self.logFileTextControl.Clear()
 
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
-        logger.debug('Attempting to open a log file.')
+        self.logger.debug('Attempting to open a log file.')
 
         if self.fileLoggerName is None:
             fileDialog = wx.FileDialog(self, "Choose log file", os.getcwd(),
@@ -282,15 +283,15 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             fileDialog.ShowModal() # Wait for response.
             self.fileLoggerName = fileDialog.GetPath() # User-chosen log file.
             fileHandler = logging.FileHandler(self.fileLoggerName)
-            fileHandler.setFormatter(formatter) # Default log formatter.
-            logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
+            fileHandler.setFormatter(self.formatter) # Default log formatter.
+            self.logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
         else:
             dlg=wx.MessageDialog(self, "Stop logging?", "Stop", wx.YES_NO|wx.ICON_QUESTION)
             if dlg.ShowModal() == wx.ID_YES: # Avoid accidental log termination.
                 # Remove the file handler from the logger.
-                for handler in logger.handlers:
-                    if isinstance(handler, logging.FileHandler): # Only one file handler foreseen.
-                        logger.removeHandler(handler)
+                for hdlr in self.logger.handlers:
+                    if isinstance(hdlr, logging.FileHandler): # Only one file handler foreseen.
+                        self.logger.removeHandler(hdlr)
                 self.fileLoggerName = None # Reset.
             else: # The checkbox should still be checked if we don't stop logging.
                 self.fileLogCheckbox.SetValue(True)
@@ -299,7 +300,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         """ Raw output checkbox status defines whether hex output can also be
         enabled or not. Grey it out when it won't affect the program not to
         confuse the users. """
-        logger.debug('Raw output ticked: {}. Current raw output state: {}.'.format(
+        self.logger.debug('Raw output ticked: {}. Current raw output state: {}.'.format(
             event.IsChecked(),self.hexOutputCheckbox.GetValue()))
 
         if event.IsChecked(): # Hex output can now be enabled.
@@ -312,7 +313,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
     def onEditSerialPort( self, event ):
         """ Edit the more fine details of the serial connection, like the parity
         or the stopbits. """
-        logger.debug('Attempting to edit serial connection details.')
+        self.logger.debug('Attempting to edit serial connection details.')
         # Main frame is the parent of this.
         serialDialog = serialDetailsDialog(self, self.currentStopBits,
             self.currentParity, self.currentByteSize)
@@ -321,7 +322,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             self.currentStopBits = serialDialog.stopBitsChoices[serialDialog.stopBitsChoice.GetSelection()]
             self.currentParity = serialDialog.parityChoices[serialDialog.parityChoice.GetSelection()]
             self.currentByteSize = serialDialog.byteSizeChoices[serialDialog.byteSizeChoice.GetSelection()]
-            logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
+            self.logger.debug('Changed serial settings to: stop bits={}, parity={}, byte size={}'.format(
                 self.currentStopBits,self.currentParity,self.currentByteSize))
             # Tell the user to reconnect for changes to take effect.
             self.notifyToReconnect()
@@ -336,15 +337,15 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         if (newLevel != self.loggingLevel):
             self.loggingLevel = newLevel
             if self.loggingLevel == "ERROR":
-                handler.setLevel(logging.ERROR)
+                self.handler.setLevel(logging.ERROR)
             elif self.loggingLevel == "WARNING":
-                handler.setLevel(logging.WARNING)
+                self.handler.setLevel(logging.WARNING)
             elif self.loggingLevel == "INFO":
-                handler.setLevel(logging.INFO)
+                self.handler.setLevel(logging.INFO)
             elif self.loggingLevel == "DEBUG":
-                handler.setLevel(logging.DEBUG)
+                self.handler.setLevel(logging.DEBUG)
             else:
-                handler.warning("Incorrect logging level {} selected, falling back to DEBUG".format(newLevel))
+                self.logger.warning("Incorrect logging level {} selected, falling back to DEBUG".format(newLevel))
                 self.loggingLevel = "DEBUG"
                 logget.setLevel(logging.DEBUG)
                 self.loggingLevelChoice.SetStringSelection("DEBUG")
@@ -398,7 +399,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         self.portOpen = False
         self.portChoice.SetSelection(0)
         self.currentPort = 'None'
-        logger.info('User disconnected from port.')
+        self.logger.info('User disconnected from port.')
 
     def checkConnection(self):
         """ Checks if there is anything still connected to the port.
@@ -415,7 +416,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             self.portOpen = False
             self.currentPort = 'None'
             # let the user know something's wrong
-            logger.error('Lost port connection.')
+            self.logger.error('Lost port connection.')
             wx.MessageBox('Port isn\'t readable! Check the connection...', 'Error',
                 wx.OK | wx.ICON_ERROR)
             # check what ports are open once the user has had a chance to react.
@@ -481,7 +482,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
                 # Log in the main display box in new line and in blue to make sure it stands out.
                 self.writeToTextBox(msg+'\n',prepend='\nOUT: ',colour=(0,0,255))
                 # Log the sent command.
-                logger.info(r'OUT: {}'.format(msg))
+                self.logger.info(r'OUT: {}'.format(msg))
 
     def parseOutputs(self):
         """ Check the serial connection for any inbound information and read it if it's
@@ -571,13 +572,13 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 				# with empty lines.
                 if len(output) > 0:
                     self.writeToTextBox(output)
-                    logger.info(output)
+                    self.logger.info(output)
 
                 # Log and print (in red) warnings, if there are any.
                 if len(warningSummary) > 0:
                     for w in warningSummary:
                         self.writeToTextBox("{}, check the log!\n".format(w), colour=(255,0,0))
-                        logger.warning(warningSummary[w])
+                        self.logger.warning(warningSummary[w])
 
     def notifyToReconnect(self):
         """ Notify the user to reconnect to the serial port for the changes they've
