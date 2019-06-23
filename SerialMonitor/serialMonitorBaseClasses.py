@@ -20,9 +20,9 @@ parseOutputsTimerID = 1000
 class mainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"serialMonitor", pos = wx.DefaultPosition, size = wx.Size( 600,501 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"serialMonitor", pos = wx.DefaultPosition, size = wx.Size( 600,550 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
-		self.SetSizeHints( wx.Size( 600,400 ), wx.DefaultSize )
+		self.SetSizeHints( wx.Size( 600,550 ), wx.DefaultSize )
 
 		bSizer1 = wx.BoxSizer( wx.HORIZONTAL )
 
@@ -69,17 +69,27 @@ class mainFrame ( wx.Frame ):
 		self.rawOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Raw output", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.rawOutputCheckbox.SetToolTip( u"Toggle between displaying complete lines terminated with an EOL char, or all received bytes as they arrive." )
 
-		bSizer2.Add( self.rawOutputCheckbox, 0, wx.ALL, 5 )
+		bSizer2.Add( self.rawOutputCheckbox, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.hexOutputCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Hex output", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.hexOutputCheckbox.SetToolTip( u"Tick to show hex codes of the received bytes. Only works with \"Raw output\"." )
 
-		bSizer2.Add( self.hexOutputCheckbox, 0, wx.ALL, 5 )
+		bSizer2.Add( self.hexOutputCheckbox, 0, wx.ALL|wx.EXPAND, 5 )
 
 		self.fileLogCheckbox = wx.CheckBox( self.m_panel1, wx.ID_ANY, u"Log to file", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.fileLogCheckbox.SetToolTip( u"Tick to stream the log output to a chosen file." )
 
-		bSizer2.Add( self.fileLogCheckbox, 0, wx.ALL, 5 )
+		bSizer2.Add( self.fileLogCheckbox, 0, wx.ALL|wx.EXPAND, 5 )
+
+		self.loggingLevelText = wx.StaticText( self.m_panel1, wx.ID_ANY, u"Logging level:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.loggingLevelText.Wrap( -1 )
+
+		bSizer2.Add( self.loggingLevelText, 0, wx.ALL|wx.EXPAND, 5 )
+
+		loggingLevelChoiceChoices = [ u"ERROR", u"WARNING", u"INFO", u"DEBUG" ]
+		self.loggingLevelChoice = wx.Choice( self.m_panel1, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, loggingLevelChoiceChoices, 0 )
+		self.loggingLevelChoice.SetSelection( 0 )
+		bSizer2.Add( self.loggingLevelChoice, 0, wx.ALL, 5 )
 
 
 		bSizer2.Add( ( 0, 0), 1, wx.EXPAND, 5 )
@@ -141,6 +151,7 @@ class mainFrame ( wx.Frame ):
 		self.clearButton.Bind( wx.EVT_BUTTON, self.onClearConsole )
 		self.rawOutputCheckbox.Bind( wx.EVT_CHECKBOX, self.onRawOutputTicked )
 		self.fileLogCheckbox.Bind( wx.EVT_CHECKBOX, self.onToggleLogFile )
+		self.loggingLevelChoice.Bind( wx.EVT_CHOICE, self.onLoggingLevelChosen )
 		self.inputTextControl.Bind( wx.EVT_TEXT_ENTER, self.onSendInput )
 		self.Bind( wx.EVT_TIMER, self.onParseOutputs, id=parseOutputsTimerID )
 		self.Bind( wx.EVT_MENU, self.onClose, id = self.exitMenuItem.GetId() )
@@ -178,6 +189,9 @@ class mainFrame ( wx.Frame ):
 		event.Skip()
 
 	def onToggleLogFile( self, event ):
+		event.Skip()
+
+	def onLoggingLevelChosen( self, event ):
 		event.Skip()
 
 	def onSendInput( self, event ):
