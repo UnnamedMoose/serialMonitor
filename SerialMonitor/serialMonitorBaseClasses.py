@@ -139,6 +139,8 @@ class mainFrame ( wx.Frame ):
 		self.readDelayTxtCtrl.Bind( wx.EVT_KILL_FOCUS, self.onUpdateReadDelay )
 		self.readDelayTxtCtrl.Bind( wx.EVT_TEXT_ENTER, self.onUpdateReadDelay )
 		self.clearButton.Bind( wx.EVT_BUTTON, self.onClearConsole )
+		self.rawOutputCheckbox.Bind( wx.EVT_CHECKBOX, self.onRawOutputTicked )
+		self.fileLogCheckbox.Bind( wx.EVT_CHECKBOX, self.onToggleLogFile )
 		self.inputTextControl.Bind( wx.EVT_TEXT_ENTER, self.onSendInput )
 		self.Bind( wx.EVT_TIMER, self.onParseOutputs, id=parseOutputsTimerID )
 		self.Bind( wx.EVT_MENU, self.onClose, id = self.exitMenuItem.GetId() )
@@ -170,6 +172,12 @@ class mainFrame ( wx.Frame ):
 
 
 	def onClearConsole( self, event ):
+		event.Skip()
+
+	def onRawOutputTicked( self, event ):
+		event.Skip()
+
+	def onToggleLogFile( self, event ):
 		event.Skip()
 
 	def onSendInput( self, event ):

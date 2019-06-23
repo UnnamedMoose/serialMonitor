@@ -120,7 +120,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         baseClasses.mainFrame.__init__(self, None)
 
         # File logger name.
-        self.fileLoggerName=None # Overwrite with a file name when user chooses to log to a file.
+        self.fileLoggerName = None # Overwrite with a file name when user chooses to log to a file.
 
         # serial communication
         self.portOpen = False # indicates if the serial communication port is open
@@ -269,7 +269,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         logger.debug('Console cleared.')
         self.logFileTextControl.Clear()
 
-#TODO FIXME BUG onToggleLogFile method is never called! Logging to file cannot be enabled.
     def onToggleLogFile(self, event):
         """ Open a log file if none is active, or close the existing one. """
         logger.debug('Attempting to open a log file.')
@@ -295,7 +294,6 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             else: # The checkbox should still be checked if we don't stop logging.
                 self.fileLogCheckbox.SetValue(True)
 
-#TODO FIXME BUG there's not even a binding for onRawOutputTicked method, so it never triggers and hex output is never enablex.
     def onRawOutputTicked(self, event):
         """ Raw output checkbox status defines whether hex output can also be
         enabled or not. Grey it out when it won't affect the program not to
