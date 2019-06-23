@@ -431,7 +431,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
 		# Write the message, with a preamble if desired.
         if len(prepend) > 0:
-            prepend = "{}: ".format(prepend) # Format the desired preamble nicely.
+            prepend = "{}".format(prepend) # Format the desired preamble nicely.
         self.logFileTextControl.WriteText(r'{}{}'.format(prepend, msg))
 
 		# Scroll to the end of the box.
