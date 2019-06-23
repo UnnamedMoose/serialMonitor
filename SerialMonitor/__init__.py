@@ -53,15 +53,15 @@ except:
 
 # Create a logger for the application.
 logger = logging.getLogger("SMLog") # It stands for Serial Monitor, right ;)
-logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler() # Will output to STDERR.
+logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-handler.setLevel(logging.DEBUG)
+handler.setLevel(logging.ERROR)
 logger.addHandler(handler)
 # TODO Attach the handler to the logger later, when user specifies the level.
 
-class PleaseReconnectDialog(wx.Dialog):
+class pleaseReconnectDialog(wx.Dialog):
     def __init__(self,parent):
         """ Tells the user to reconnect to the serial port for the new connection
         settings to take effect."""
@@ -121,6 +121,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 
         # File logger name.
         self.fileLoggerName = None # Overwrite with a file name when user chooses to log to a file.
+        self.loggingLevel = "ERROR"
 
         # serial communication
         self.portOpen = False # indicates if the serial communication port is open
@@ -274,23 +275,23 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         logger.debug('Attempting to open a log file.')
 
         if self.fileLoggerName is None:
-            fileDialog=wx.FileDialog(self,"Choose log file",os.getcwd(),
+            fileDialog = wx.FileDialog(self, "Choose log file", os.getcwd(),
                                     time.strftime("%Y%m%d%H%M%S_SM.log"),
                                     "Log files (*.log)|*.log",
                                          wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
             fileDialog.ShowModal() # Wait for response.
-            self.fileLoggerName=fileDialog.GetPath() # User-chosen log file.
-            fileHandler=logging.FileHandler(self.fileLoggerName)
+            self.fileLoggerName = fileDialog.GetPath() # User-chosen log file.
+            fileHandler = logging.FileHandler(self.fileLoggerName)
             fileHandler.setFormatter(formatter) # Default log formatter.
             logger.addHandler(fileHandler) # Already logs to STDERR, now also the file.
         else:
-            dlg=wx.MessageDialog(self,"Stop logging?","Stop",wx.YES_NO|wx.ICON_QUESTION)
-            if dlg.ShowModal()==wx.ID_YES: # Avoid accidental log termination.
+            dlg=wx.MessageDialog(self, "Stop logging?", "Stop", wx.YES_NO|wx.ICON_QUESTION)
+            if dlg.ShowModal() == wx.ID_YES: # Avoid accidental log termination.
                 # Remove the file handler from the logger.
                 for handler in logger.handlers:
-                    if isinstance(handler,logging.FileHandler): # Only one file handler foreseen.
+                    if isinstance(handler, logging.FileHandler): # Only one file handler foreseen.
                         logger.removeHandler(handler)
-                self.fileLoggerName=None # Reset.
+                self.fileLoggerName = None # Reset.
             else: # The checkbox should still be checked if we don't stop logging.
                 self.fileLogCheckbox.SetValue(True)
 
@@ -326,6 +327,27 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
             self.notifyToReconnect()
         else: # Nothing's changed.
             pass
+
+    def onLoggingLevelChosen(self, event):
+        """ Check if the new logging level is different to the currently selected
+        one and, if so, do an update. """
+        # Retrieve the new selection.
+        newLevel = self.loggingLevelChoice.GetStringSelection()
+        if (newLevel != self.loggingLevel):
+            self.loggingLevel = newLevel
+            if self.loggingLevel == "ERROR":
+                handler.setLevel(logging.ERROR)
+            elif self.loggingLevel == "WARNING":
+                handler.setLevel(logging.WARNING)
+            elif self.loggingLevel == "INFO":
+                handler.setLevel(logging.INFO)
+            elif self.loggingLevel == "DEBUG":
+                handler.setLevel(logging.DEBUG)
+            else:
+                handler.warning("Incorrect logging level {} selected, falling back to DEBUG".format(newLevel))
+                self.loggingLevel = "DEBUG"
+                logget.setLevel(logging.DEBUG)
+                self.loggingLevelChoice.SetStringSelection("DEBUG")
 
     #============================
     # OTHER FUNCTIONS
@@ -561,7 +583,7 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
         """ Notify the user to reconnect to the serial port for the changes they've
         made to take effect by opening a dialog. It'll automatically disappear
         after two seconds. """
-        reconnectInfoDialog = PleaseReconnectDialog(self)
+        reconnectInfoDialog = pleaseReconnectDialog(self)
         # Automatically close after some time.
         wx.CallLater(2000, reconnectInfoDialog.Destroy)
         reconnectInfoDialog.ShowModal()
