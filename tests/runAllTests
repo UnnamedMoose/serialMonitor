@@ -12,7 +12,7 @@ for f in $(ls ./test*.py -1);
 do
 	echo "Running $f."; # This is going to let us know the tests are running.
 	# Be extra careful with this test.
-	if [[ "$f" == "./testHIL_raw.py" ]]; then
+	if [[ "$f" == "./testHIL_raw.py" || "$f" == "./testHIL_hex.py" || "$f" == "./testHIL_formatted.py" ]]; then
 		echo "The following test requires Arduino to be connected."
 		read -p "DO YOU WISH TO CONTINUE? (default no) " -n 1 -r
 		echo # Add an empty line.
