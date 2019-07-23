@@ -84,6 +84,9 @@ class Tests(unittest.TestCase):
 		self.assertEqual(len(rawOutput[0]),0,msg='Expected zero bytes.')
 		# 'raw' option should leave outputBuffer unchanged.
 		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Check message length.
+		self.assertEqual(len(rawOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(rawOutput[1]),9,msg='Expected nine bytes')
 		# Should have no warnings.
 		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.

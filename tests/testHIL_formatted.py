@@ -79,17 +79,45 @@ class Tests(unittest.TestCase):
 						msg='Need an empty buffer before running this test case.')
 		# port.inWaiting will be 0, so grabPortOutput will just proceed to return
 		# the input outputBuffer and the default (empty) output.
-		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
-		self.assertEqual(hexOutput[0],'',msg='Expected empty string as output.')
-		self.assertEqual(len(hexOutput[0]),0,msg='Expected zero bytes.')
-		# 'hex' option should leave outputBuffer unchanged.
-		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty string as output.')
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected zero bytes.')
+		self.assertEqual(formattedOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(formattedOutput[1]),9,msg='Expected nine bytes')
 		# Should have no warnings.
-		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testFormattedGoodByte_0(self):
+		""" Single formatted byte with three different representations of '0'. """
+		self.fixture.write(b'Z') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response ('0' ASCII and two 0x00 integers).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# 'formatted' outputFormat will append to the outputBuffer if there's no EOL termination.
+		self.assertEqual(formattedOutput[1],'DummyBuff0\x00\x00',msg='Expected DummyBuff0\\x00\\x00.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(formattedOutput[1]),12,msg='Expected 12 bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 		#TODO translate formatted tests into hardware in the loop.
-		
+
 if __name__ == '__main__':
 	unittest.main()

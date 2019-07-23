@@ -82,6 +82,9 @@ class Tests(unittest.TestCase):
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		self.assertEqual(hexOutput[0],'',msg='Expected empty string as output.')
 		self.assertEqual(len(hexOutput[0]),0,msg='Expected zero bytes.')
+		# Check message length.
+		self.assertEqual(len(hexOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(hexOutput[1]),9,msg='Expected nine bytes')
 		# 'hex' option should leave outputBuffer unchanged.
 		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
