@@ -117,7 +117,150 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
+	def testFormattedGoodByte_1(self):
+		""" Single formatted byte with three different representations of '1'. """
+		self.fixture.write(b'O') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response is '1'11 (ASCII and two 1 integers) = 0x31 0x01 0x01
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# 'formatted' outputFormat will append to the outputBuffer if there's no EOL termination.
+		self.assertEqual(formattedOutput[1],'DummyBuff1\x01\x01',msg='Expected DummyBuff1\\x01\\x01.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(formattedOutput[1]),12,msg='Expected 12 bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_0x41(self):
+		""" Single formatted byte with three different representations of
+		ASCII 'A' = 0x41 = 65. """
+		self.fixture.write(b'A') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response is 'A'0x41 65 (ASCII and two integers).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# 'formatted' outputFormat will append to the outputBuffer if there's no EOL termination.
+		# Both 'A' and '\x41' representations work.
+		self.assertEqual(formattedOutput[1],'DummyBuffA\x41\x41',msg='Expected DummyBuffA\\x41\\x41.')
+		self.assertEqual(formattedOutput[1],'DummyBuffAAA',msg='Expected DummyBuffAAA.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(formattedOutput[1]),12,msg='Expected 12 bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_0andEOL(self):
+		""" Single formatted byte with three different representations of '0'.
+		There will be an EOL ('\n') at the end. """
+		self.fixture.write(b'z') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response ('0' ASCII and two 0x00 integers).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent bytes + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff0\x00\x00\n',msg='Expected DummyBuff0\\x00\\x00\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected epty outputBuffer.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),13,msg='Expected 13 bytes')
+		self.assertEqual(len(formattedOutput[1]),0,msg='Expected zero bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_1ndEOL(self):
+		""" Single formatted byte with three different representations of '1'.
+		There will be an EOL ('\n') at the end. """
+		self.fixture.write(b'o') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response is '1'11 (ASCII and two 1 integers) = 0x31 0x01 0x01
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent bytes + EOL.
+		self.assertEqual(formattedOutput[0],'DummyBuff1\x01\x01\n',msg='DummyBuff1\\x01\\x01\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected epty outputBuffer.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),13,msg='Expected 13 bytes')
+		self.assertEqual(len(formattedOutput[1]),0,msg='Expected zero bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_0x41ndEOL(self):
+		""" Single formatted byte with three different representations of
+		ASCII 'A' = 0x41 = 65. There will be an EOL ('\n') at the end. """
+		self.fixture.write(b'a') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response is 'A'0x41 65 (ASCII and two integers).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have the input outputBuffer + sent bytes + EOL.
+		# Both 'A' and '\x41' representations work.
+		self.assertEqual(formattedOutput[0],'DummyBuffA\x41\x41\n',msg='Expected DummyBuffA\\x41\\x41\n.')
+		self.assertEqual(formattedOutput[0],'DummyBuffAAA\n',msg='Expected DummyBuffAAA\n.')
+		# No output buffer, we've sent one complete line.
+		self.assertEqual(formattedOutput[1],'',msg='Expected epty outputBuffer.')
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),13,msg='Expected 13 bytes')
+		self.assertEqual(len(formattedOutput[1]),0	,msg='Expected zero bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
 		#TODO translate formatted tests into hardware in the loop.
+		#TODO testFormattedGoodByte_fullASCIITable
+		#TODO testFormattedGoodByte_fullASCIITableInOneGo
+		#TODO testFormattedGoodByte_invalidASCII
+		#TODO testFormattedGoodByte_validInvalidASCII
+		#TODO testFormattedGoodByte_invalidValidASCII
 
 if __name__ == '__main__':
 	unittest.main()

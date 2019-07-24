@@ -137,6 +137,37 @@ void sendA(void)
 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
 }
 
+void sendOneEOL(void)
+/* Send '1' ASCII character, followed by a 0x00 and 0 integers. Add \n at the end. */
+{
+	Serial.print("1"); // Send ASCII character.
+	Serial.write(0x01); // Hex number.
+	Serial.write(1); // Decimal number.
+	Serial.print("\n"); // Send EOL character.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendZeroEOL(void)
+/* Send '0' ASCII character, followed by a 0x00 and 0 integers. Add \n at the end.  */
+{
+	Serial.print("0"); // Send ASCII character.
+	Serial.write(0x00); // Hex number.
+	Serial.write(0); // Decimal number.
+	Serial.print("\n"); // Send EOL character.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendAEOL(void)
+/* Send 'A' character, followed by a 0x41 and 65 (corresponding ASCII code in hex
+ * and decimal). Add \n at the end.  */
+{
+	Serial.print("A"); // Send ASCII.
+	Serial.write(0x41); // Send binary data.
+	Serial.write(65); // ASCII code.
+	Serial.print("\n"); // Send EOL character.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
 void setup()
 /* Setup the Arduino - just open the serial port. */
 {
@@ -184,6 +215,15 @@ void loop()
 				break;
 			case 'R': // Send one message that exceeds Unicode range (and two others).
 				sendOutOfRange();
+				break;
+			case 'a': // Simplest test, including \n at the end.
+				sendAEOL();
+				break;
+			case 'z': // Another simple test, including \n at the end.
+				sendZeroEOL();
+				break;
+			case 'o': // Another simple test, including \n at the end.
+				sendOneEOL();
 				break;
 		}
 	}
