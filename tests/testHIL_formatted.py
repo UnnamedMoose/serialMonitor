@@ -255,10 +255,78 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
+	def testFormattedGoodByte_invalidASCII(self):
+		""" Send several non-ASCII bytes (128+, 0x80 to 0xFF, i.e. no longer ASCII but
+		still one byte.) """
+		self.fixture.write(b'N') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - received no valid ASCII bytes.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Will not change the outputBuffer if there are invalid bytes sent.
+		self.assertEqual(formattedOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected 0 characters.')
+		self.assertEqual(len(formattedOutput[1]),9,msg='Expected 9 characters.')
+		# Should have 13 warnings.
+		self.assertEqual(len(formattedOutput[2]),13,msg='Expected 13 warnings in the dict.')
+		# Check that the error dict has the expected keys. N.B. dicts are unordered
+		# so don't know which key will be at what index.
+		for i in range(13):
+			self.assertIn('UnicodeDecodeError{}'.format(i),list(formattedOutput[2].keys()),
+				msg='Expected UnicodeDecodeError{} in the dict keys.'.format(i))
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_fullASCIITable(self):
+		""" Send a valid formatted message, one valid ASCII byte at a time. Some will
+		be sent and read as hex codes of bytes, others as ASCII characters. """
+		self.fixture.write(b'S') # Send the command byte to execute this test case.
+		time.sleep(1) # Wait for the transmission of all the ASCII bytes.
+
+		# Prepare the expected output. Some bytes (before EOL) as well as the input
+		# buffer will be moved to output. The following will be in the outputBuffer.
+		# N.B. 0x0a=10='\n'
+		expectedOutput='DummyBuff'
+		expectedBuffer=''
+		for i in range(0,10): # Before EOL - will be moved to output.
+			expectedOutput+=chr(i)
+		expectedOutput+='\n' # EOL at the end of output.
+
+		for i in range(11,128): # After EOL - will be stored in the buffer.
+			expectedBuffer+=chr(i)
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - some bytes in output, others in the buffer.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		self.assertEqual(formattedOutput[0],expectedOutput,msg='Expected output={}'.format(expectedOutput))
+		self.assertEqual(formattedOutput[1],expectedBuffer,msg='Expected buffer={}'.format(expectedBuffer))
+		self.assertEqual(len(formattedOutput[0]),20,msg='Expected 20 characters.')
+		self.assertEqual(len(formattedOutput[1]),117,msg='Expected 117 characters.')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		#TODO should try sending a valid byte and EOL, followed by an invalid byte (current test gap).
+
 		#TODO translate formatted tests into hardware in the loop.
-		#TODO testFormattedGoodByte_fullASCIITable
 		#TODO testFormattedGoodByte_fullASCIITableInOneGo
-		#TODO testFormattedGoodByte_invalidASCII
 		#TODO testFormattedGoodByte_validInvalidASCII
 		#TODO testFormattedGoodByte_invalidValidASCII
 
