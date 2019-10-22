@@ -280,7 +280,7 @@ class Tests(unittest.TestCase):
 				# Check message length.
 				self.assertEqual(len(formattedOutput[0]),0,msg='Expected zero bytes')
 				self.assertEqual(len(formattedOutput[1]),10,msg='Expected ten bytes')
-			else: # We terminated the message because 0x41='\n'
+			else: # We terminated the message because 0x0a='\n'
 				# Will move input outputBuffer to output and append nothing to it -
 				# only one complete line has been sent.
 				self.assertEqual(formattedOutput[0],'DummyBuff\n',msg='Expected DummyBuff\\n in output.')

@@ -201,10 +201,10 @@ void loop()
 			case 'O': // Another simple test.
 				sendOne();
 				break;
-			case 'S': // Send an entire ASICC table.
+			case 'S': // Send an entire ASCII table.
 				sendASCIITable();
 				break;
-			case 'N': // Send several non-ASICC bytes.
+			case 'N': // Send several non-ASCII bytes.
 				sendNonASCII();
 				break;
 			case 'L': // Send two-byte integers.
