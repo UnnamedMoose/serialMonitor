@@ -323,12 +323,11 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-		#TODO should try sending a valid byte and EOL, followed by an invalid byte (current test gap).
-
 		#TODO translate formatted tests into hardware in the loop.
 		#TODO testFormattedGoodByte_fullASCIITableInOneGo
 		#TODO testFormattedGoodByte_validInvalidASCII
 		#TODO testFormattedGoodByte_invalidValidASCII
+		#TODO testFormattedGoodByte_validELOInvalidASCII
 
 if __name__ == '__main__':
 	unittest.main()
