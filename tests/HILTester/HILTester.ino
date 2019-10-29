@@ -110,6 +110,34 @@ byte one at a time formatted in the raw binary representation. */
 	}
 }
 
+void sendASCIITableInOneGo(void)
+/* Send all ASCII characters from 33 to 126 ('!' to '~'), inclusive in packs of
+ten separated by EOL ('\n'). Send 'outputBuffer' at the end. */
+{
+	// First visible ASCIIcharacter '!' is number 33 but start from 0.
+	int ctr = 10;
+
+	// Go through all characters until 0x7f=128.
+	// Last readable character is '~'=126.
+	for(int thisByte=0; thisByte<128; thisByte++)
+	{
+	  // Print thisByte unaltered, i.e. the raw binary version of the byte.
+	  Serial.write(thisByte);
+	  Serial.flush(); // Wait for the outgoing buffer to be cleared.
+
+	  ctr-=1;
+	  if(ctr==0)
+	  {
+	    ctr=10;
+	    Serial.write('\n'); // Separate groups of 10 bytes.
+	  }
+	}
+
+	// Last bytes to be sent. 'OutputBuffer' will go to the outputBuffer, '\n' to output.
+	Serial.write("\nOutputBuffer"); // No EOL after 'OutputBuffer'
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
 void sendOne(void)
 /* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
 {
@@ -224,6 +252,9 @@ void loop()
 				break;
 			case 'o': // Another simple test, including \n at the end.
 				sendOneEOL();
+				break;
+			case 's': // Groups of ten bytes.
+				sendASCIITableInOneGo();
 				break;
 		}
 	}

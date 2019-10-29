@@ -323,8 +323,56 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
+	def testFormattedGoodByte_fullASCIITableInOneGo(self):
+		""" Send the full ASCII table in many lines separated by EOLs. Some bytes
+		will be sent and read as hex codes of bytes, others as ASCII characters. """
+		previousDiffLen = self.maxDiff
+		self.maxDiff = None # To be able to see the entire message in case of test failure.
+
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer before the test.')
+
+		self.fixture.write(b's') # Send the command byte to execute this test case.
+		time.sleep(2) # Wait for the transmission of all the ASCII bytes.
+
+		# Prepare the expected output.
+		sentBytes=b'' # What we've actually sent.
+		ctr=10 # Sent EOL when this reaches 0.
+		for i in range(0,128): # From 0x00 (0) to 0x7F (127).
+			sentBytes += i.to_bytes(1,byteorder='big',signed=False)
+			ctr-=1
+			if ctr==0: # Send EOL every so often to split all characters into lines.
+				ctr=10
+				sentBytes += b'\n'
+		sentBytes += b'\n' # A known outputBuffer after the message.
+
+		timeoutCounter=0 # Wait for data to appear.
+		while self.fixture.inWaiting() <= 0:
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - some bytes in output, others in the buffer.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# Will move input outputBuffer ('DummyBuff') to output and append the
+		# sent message to it. 'OutputBuffer' will now be in the outputBuffer.
+		self.assertEqual(formattedOutput[0],'DummyBuff'+''.join(chr(x) for x in sentBytes),
+			msg='Expected {} in output.'.format('DummyBuff'+''.join(chr(x) for x in sentBytes)))
+		self.assertEqual(formattedOutput[1],'OutputBuffer',msg="Expected 'OutputBuffer' in outputBuffer")
+		# Check message length.
+		self.assertEqual(len(formattedOutput[0]),len('DummyBuff')+len(sentBytes),
+			msg='Expected {} bytes'.format(len('DummyBuff')+len(sentBytes)))
+		self.assertEqual(len(formattedOutput[1]),12,msg='Expected 12 bytes')
+		# Should have no warnings.
+		self.assertEqual(formattedOutput[2],{},msg='Expected empty warning dict.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+		self.maxDiff = previousDiffLen # Revert temporay change.
+
 		#TODO translate formatted tests into hardware in the loop.
-		#TODO testFormattedGoodByte_fullASCIITableInOneGo
 		#TODO testFormattedGoodByte_validInvalidASCII
 		#TODO testFormattedGoodByte_invalidValidASCII
 		#TODO testFormattedGoodByte_validELOInvalidASCII
