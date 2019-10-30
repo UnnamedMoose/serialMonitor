@@ -5,6 +5,43 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void sendInvalidEOLValid(void)
+ /* Send one invalid (128=0x80) and one valid (126=0x7E=~) ASCII bytes
+ separated by EOL ('\n'). */
+ {
+ 	Serial.write(0x80); // Invalid = 128.
+ 	Serial.print("\n"); // EOL = '\n' = 0x0A = 10.
+	Serial.write(0x7E); // Valid ~ = 0x7E = 126.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
+void sendValidEOLInvalid(void)
+ /* Send one valid (127=0x7F) and one invalid (128=0x80) ASCII bytes
+ separated by EOL ('\n'). */
+ {
+	Serial.write(0x7F); // Valid = 127.
+	Serial.print("\n"); // EOL = '\n' = 0x0A = 10.
+	Serial.write(0x80); // Invalid = 128.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
+void sendValidInvalid(void)
+ /* Send one valid (127=0x7F) and one invalid (128=0x80) ASCII bytes. */
+ {
+ 	Serial.write(0x7F); // Valid = 127.
+ 	Serial.write(0x80); // Invalid = 128.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
+void sendInvalidValid(void)
+ /* Send one invalid (128=0x80) and one valid (126=0x7E=~) ASCII bytes.
+ Use different valid byte than ValidInvalid test case to make sure we run both. */
+ {
+	Serial.write(0x80); // Invalid = 128.
+	Serial.write(0x7E); // Valid = ~ = 0x7E = 126.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
 void serialSendLong(long f)
 /* Send a 16-bit long integer number via serial connection, one
 byte at a time. The serial connection must be initialised with the desired baud
@@ -253,8 +290,20 @@ void loop()
 			case 'o': // Another simple test, including \n at the end.
 				sendOneEOL();
 				break;
-			case 's': // Groups of ten bytes.
+			case 's': // Groups of ten bytes incl. full ASCII table.
 				sendASCIITableInOneGo();
+				break;
+			case 'V': // Valid and invalid ASCII.
+				sendValidInvalid();
+				break;
+			case 'v': // Invalid and valid ASCII.
+				sendInvalidValid();
+				break;
+			case 'E': // Valid and invalid ASCII with '\n' in between.
+				sendValidEOLInvalid();
+				break;
+			case 'e': // Invalid and valid ASCII with '\n' in between.
+				sendInvalidEOLValid();
 				break;
 		}
 	}

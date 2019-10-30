@@ -420,7 +420,26 @@ class Tests(unittest.TestCase):
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
-	def testFormattedGoodByte_validELOInvalidASCII(self):
+	def testFormattedGoodByte_invalidEOLValidASCII(self):
+		""" Send a formatted message with valid and invalid ASCII bytes separated by EOL. """
+		# Send one valid and one invalid byte with 0x0a=10='\n' in the middle.
+		self.fixture.write(b'\x80\x0A\x7F') # 128=0x80, invalid ASCII. 127=0x7F is valid.
+		time.sleep(0.1) # In case there's a delay (to be expected on Windows).
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have one invalid byte sent before the EOL, which will NOT
+		# be appended to DummyBuff - it's invalid, after all.
+		self.assertEqual(formattedOutput[0],'DummyBuff\n',msg='Expected DummyBuff\\n in output.')
+		self.assertEqual(len(formattedOutput[0]),10,msg='Expected 10 characters.')
+		# Should one byte in the outputBuffer (one valid byte after EOL termination, DummyBuff moved to output).
+		self.assertEqual(formattedOutput[1],'\x7F',msg='Expected \\x7F in outputBuffer.')
+		self.assertEqual(len(formattedOutput[1]),1,msg='Expected one character.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
+
+	def testFormattedGoodByte_validEOLInvalidASCII(self):
 		""" Send a formatted message with valid and invalid ASCII bytes separated by EOL. """
 		# Send one valid and one invalid byte with 0x0a=10='\n' in the middle.
 		self.fixture.write(b'\x7F\x0A\x80') # 128=0x80, invalid ASCII. 127=0x7F is valid.

@@ -372,10 +372,112 @@ class Tests(unittest.TestCase):
 
 		self.maxDiff = previousDiffLen # Revert temporay change.
 
-		#TODO translate formatted tests into hardware in the loop.
-		#TODO testFormattedGoodByte_validInvalidASCII
-		#TODO testFormattedGoodByte_invalidValidASCII
-		#TODO testFormattedGoodByte_validELOInvalidASCII
+	def testFormattedGoodByte_validInvalidASCII(self):
+		""" Send one valid (127=0x7F) and one invalid (128=0x80) ASCII bytes. """
+		self.fixture.write(b'V') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - received no valid ASCII bytes.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Should append the valid byte to outputBuffer (no EOL termination), and discard the invalid byte.
+		self.assertEqual(formattedOutput[1],'DummyBuff\x7F',msg='Expected DummyBuff\\x7F.')
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected 0 characters.')
+		self.assertEqual(len(formattedOutput[1]),10,msg='Expected 10 characters.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_invalidValidASCII(self):
+		""" Send one invalid (128=0x80) and one valid (126=0x7E=~) ASCII bytes. """
+		self.fixture.write(b'v') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - received no valid ASCII bytes.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will be empty if there is no EOL termination of the message.
+		self.assertEqual(formattedOutput[0],'',msg='Expected empty output.')
+		# Should append the valid byte to outputBuffer (no EOL termination), and discard the invalid byte.
+		self.assertEqual(formattedOutput[1],'DummyBuff\x7E',msg='Expected DummyBuff\\x7E.')
+		self.assertEqual(len(formattedOutput[0]),0,msg='Expected 0 characters.')
+		self.assertEqual(len(formattedOutput[1]),10,msg='Expected 10 characters.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_validEOLInvalidASCII(self):
+		""" Send one valid (127=0x7F) and one invalid (128=0x80) ASCII bytes
+		separated by EOL. """
+		self.fixture.write(b'E') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - received no valid ASCII bytes.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have one byte sent before the EOL, which will be appended to DummyBuff.
+		self.assertEqual(formattedOutput[0],'DummyBuff\x7F\n',msg='Expected DummyBuff\\x7F\\n in output.')
+		self.assertEqual(len(formattedOutput[0]),11,msg='Expected 11 characters.')
+		# Should have nothing to the outputBuffer (no valid byte after EOL termination, DummyBuff moved to output).
+		self.assertEqual(formattedOutput[1],'',msg='Expected empty outputBuffer.')
+		self.assertEqual(len(formattedOutput[1]),0,msg='Expected 0 characters.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
+
+	def testFormattedGoodByte_invalidEOLValidASCII(self):
+		""" Send one invalid (128=0x80) and one valid (126=0x7E=~) ASCII bytes
+		separated by EOL. """
+		self.fixture.write(b'e') # Send the command byte to execute this test case.
+		timeoutCounter=0
+
+		while self.fixture.inWaiting() <= 0: # Wait for data to appear.
+			time.sleep(0.1)
+			timeoutCounter += 1
+			if timeoutCounter == TIMEOUT:
+				self.fixture.close()
+				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
+
+		# Verify the response - received no valid ASCII bytes.
+		formattedOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','formatted')
+		# output will have one invalid byte sent before the EOL, which will NOT
+		# be appended to DummyBuff - it's invalid, after all.
+		self.assertEqual(formattedOutput[0],'DummyBuff\n',msg='Expected DummyBuff\\n in output.')
+		self.assertEqual(len(formattedOutput[0]),10,msg='Expected 10 characters.')
+		# Should have nothing to the outputBuffer (no valid byte after EOL termination, DummyBuff moved to output).
+		self.assertEqual(formattedOutput[1],'\x7E',msg='Expected \\x7E in outputBuffer.')
+		self.assertEqual(len(formattedOutput[1]),1,msg='Expected one character.')
+		# Should have one warning.
+		self.assertEqual(len(formattedOutput[2]),1,msg='Expected one warning in the dict.')
+		self.assertIn('UnicodeDecodeError0',list(formattedOutput[2].keys()),msg='Expected UnicodeDecodeError0 in the dict keys.')
+		# The port should be empty now.
+		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
 if __name__ == '__main__':
 	unittest.main()
