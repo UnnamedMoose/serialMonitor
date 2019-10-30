@@ -5,6 +5,43 @@
  * results in order to determine whether the test has been successful or not.
  * */
 
+void sendInvalidEOLValid(void)
+ /* Send one invalid (128=0x80) and one valid (126=0x7E=~) ASCII bytes
+ separated by EOL ('\n'). */
+ {
+ 	Serial.write(0x80); // Invalid = 128.
+ 	Serial.print("\n"); // EOL = '\n' = 0x0A = 10.
+	Serial.write(0x7E); // Valid ~ = 0x7E = 126.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
+void sendValidEOLInvalid(void)
+ /* Send one valid (127=0x7F) and one invalid (128=0x80) ASCII bytes
+ separated by EOL ('\n'). */
+ {
+	Serial.write(0x7F); // Valid = 127.
+	Serial.print("\n"); // EOL = '\n' = 0x0A = 10.
+	Serial.write(0x80); // Invalid = 128.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
+void sendValidInvalid(void)
+ /* Send one valid (127=0x7F) and one invalid (128=0x80) ASCII bytes. */
+ {
+ 	Serial.write(0x7F); // Valid = 127.
+ 	Serial.write(0x80); // Invalid = 128.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
+void sendInvalidValid(void)
+ /* Send one invalid (128=0x80) and one valid (126=0x7E=~) ASCII bytes.
+ Use different valid byte than ValidInvalid test case to make sure we run both. */
+ {
+	Serial.write(0x80); // Invalid = 128.
+	Serial.write(0x7E); // Valid = ~ = 0x7E = 126.
+ 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+ }
+
 void serialSendLong(long f)
 /* Send a 16-bit long integer number via serial connection, one
 byte at a time. The serial connection must be initialised with the desired baud
@@ -110,6 +147,34 @@ byte one at a time formatted in the raw binary representation. */
 	}
 }
 
+void sendASCIITableInOneGo(void)
+/* Send all ASCII characters from 33 to 126 ('!' to '~'), inclusive in packs of
+ten separated by EOL ('\n'). Send 'outputBuffer' at the end. */
+{
+	// First visible ASCIIcharacter '!' is number 33 but start from 0.
+	int ctr = 10;
+
+	// Go through all characters until 0x7f=128.
+	// Last readable character is '~'=126.
+	for(int thisByte=0; thisByte<128; thisByte++)
+	{
+	  // Print thisByte unaltered, i.e. the raw binary version of the byte.
+	  Serial.write(thisByte);
+	  Serial.flush(); // Wait for the outgoing buffer to be cleared.
+
+	  ctr-=1;
+	  if(ctr==0)
+	  {
+	    ctr=10;
+	    Serial.write('\n'); // Separate groups of 10 bytes.
+	  }
+	}
+
+	// Last bytes to be sent. 'OutputBuffer' will go to the outputBuffer, '\n' to output.
+	Serial.write("\nOutputBuffer"); // No EOL after 'OutputBuffer'
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
 void sendOne(void)
 /* Send '1' ASCII character, followed by a 0x00 and 0 integers. */
 {
@@ -134,6 +199,37 @@ void sendA(void)
 	Serial.print("A"); // Send ASCII.
 	Serial.write(0x41); // Send binary data.
 	Serial.write(65); // ASCII code.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendOneEOL(void)
+/* Send '1' ASCII character, followed by a 0x00 and 0 integers. Add \n at the end. */
+{
+	Serial.print("1"); // Send ASCII character.
+	Serial.write(0x01); // Hex number.
+	Serial.write(1); // Decimal number.
+	Serial.print("\n"); // Send EOL character.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendZeroEOL(void)
+/* Send '0' ASCII character, followed by a 0x00 and 0 integers. Add \n at the end.  */
+{
+	Serial.print("0"); // Send ASCII character.
+	Serial.write(0x00); // Hex number.
+	Serial.write(0); // Decimal number.
+	Serial.print("\n"); // Send EOL character.
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendAEOL(void)
+/* Send 'A' character, followed by a 0x41 and 65 (corresponding ASCII code in hex
+ * and decimal). Add \n at the end.  */
+{
+	Serial.print("A"); // Send ASCII.
+	Serial.write(0x41); // Send binary data.
+	Serial.write(65); // ASCII code.
+	Serial.print("\n"); // Send EOL character.
 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
 }
 
@@ -170,10 +266,10 @@ void loop()
 			case 'O': // Another simple test.
 				sendOne();
 				break;
-			case 'S': // Send an entire ASICC table.
+			case 'S': // Send an entire ASCII table.
 				sendASCIITable();
 				break;
-			case 'N': // Send several non-ASICC bytes.
+			case 'N': // Send several non-ASCII bytes.
 				sendNonASCII();
 				break;
 			case 'L': // Send two-byte integers.
@@ -184,6 +280,30 @@ void loop()
 				break;
 			case 'R': // Send one message that exceeds Unicode range (and two others).
 				sendOutOfRange();
+				break;
+			case 'a': // Simplest test, including \n at the end.
+				sendAEOL();
+				break;
+			case 'z': // Another simple test, including \n at the end.
+				sendZeroEOL();
+				break;
+			case 'o': // Another simple test, including \n at the end.
+				sendOneEOL();
+				break;
+			case 's': // Groups of ten bytes incl. full ASCII table.
+				sendASCIITableInOneGo();
+				break;
+			case 'V': // Valid and invalid ASCII.
+				sendValidInvalid();
+				break;
+			case 'v': // Invalid and valid ASCII.
+				sendInvalidValid();
+				break;
+			case 'E': // Valid and invalid ASCII with '\n' in between.
+				sendValidEOLInvalid();
+				break;
+			case 'e': // Invalid and valid ASCII with '\n' in between.
+				sendInvalidEOLValid();
 				break;
 		}
 	}

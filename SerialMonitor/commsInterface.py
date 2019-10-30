@@ -184,9 +184,14 @@ def grabPortOutput(port, outputBuffer, outputFormat):
 		# Hex output.
 		else:
 			# Take one byte at a time from dataStr (<class 'bytes'>) and format
-			# it as a hex-code, e.g. 0x12 or 0x03. Separate consecutive bytes
-			# with ':'. Note the leading '0' for integers smaller than 0x0F+1=16.
-			# Need it to understand transmissions involving many bytes.
+			# it as a hex-code, e.g. 0x12 or 0x03. Iterating over dataStr will
+			# produce single integers (<class 'int'>). Separate consecutive bytes
+			# with ':'.
+			# NOTE 1 - there's a leading '0' for integers smaller than 0x0F+1=16.
+			#          Need it to understand transmissions involving many bytes.
+			# NOTE 2 - because we process one byte at a time, endian doesn't matter;
+			#          big or small will yield the same *single* byte.
+			# NOTE 3 - there will be no leading or trailing colon (':').
 			output = ':'.join('0x'+c.to_bytes(1,'big',signed=False).hex() for c in dataStr)
 #TODO for raw and hex output, outputBuffer makes no sense.
 	return output, outputBuffer, warningSummary

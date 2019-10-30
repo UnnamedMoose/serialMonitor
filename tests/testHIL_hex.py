@@ -72,23 +72,23 @@ class Tests(unittest.TestCase):
 		self.fixture.close()
 		del self.fixture
 
-	def testRawEmptyMessage(self):
-		""" Send an empty message with raw outputFormat. """
+	def testEmptyMessage(self):
+		""" Send an empty message. """
 		notNeeded=self.fixture.read(1) # Empty the port.
 		self.assertEqual(self.fixture.read(1),b'',
 						msg='Need an empty buffer before running this test case.')
 		# port.inWaiting will be 0, so grabPortOutput will just proceed to return
 		# the input outputBuffer and the default (empty) output.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
-		self.assertEqual(rawOutput[0],'',msg='Expected empty string as output.')
-		self.assertEqual(len(rawOutput[0]),0,msg='Expected zero bytes.')
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
+		self.assertEqual(hexOutput[0],'',msg='Expected empty string as output.')
+		self.assertEqual(len(hexOutput[0]),0,msg='Expected zero bytes.')
 		# Check message length.
-		self.assertEqual(len(rawOutput[0]),0,msg='Expected zero bytes')
-		self.assertEqual(len(rawOutput[1]),9,msg='Expected nine bytes')
+		self.assertEqual(len(hexOutput[0]),0,msg='Expected zero bytes')
+		self.assertEqual(len(hexOutput[1]),9,msg='Expected nine bytes')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after the test.')
 
@@ -105,30 +105,18 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
-		# Should get '0'00 (ASCII and two integers) in a raw string representation.
-		self.assertEqual(rawOutput[0],'0\x00\x00',msg="Expected '0'\\x00\\x00 ('0'00).")
-		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
+		# Should get '0'00 (ASCII and two 0 integers) = 0x30 0x00 0x00
+		self.assertEqual(hexOutput[0],'0x30:0x00:0x00',msg="Expected 0x30:0x00:0x00.")
+		self.assertEqual(len(hexOutput[0]),14,msg='Expected 14 bytes.')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
-
-		# Verify casting of the received bytes to integers.
-		for i in range(len(rawOutput[0])): # Already asserted it's three bytes. Use it.
-			self.assertTrue(type(rawOutput[0][i])==str,'rawOutput[0][{}] is not string.'.format(i))
-		tempInt=int(rawOutput[0][0]) # Cast the unicode string to integer.
-		self.assertEqual(tempInt,0,msg='tempInt != 0.')
-		tempInt=int.from_bytes(bytes(rawOutput[0][1],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='little',signed=False)
-		self.assertEqual(tempInt,0,msg='tempInt != 0.')
-		tempInt=int.from_bytes(bytes(rawOutput[0][2],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='little',signed=False)
-		self.assertEqual(tempInt,0,msg='tempInt != 0.')
 
 	def testRawGoodByte_1(self):
 		""" Send a three bytes with three different representations of '1'. """
@@ -143,30 +131,18 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
-		# Should get '1'11 (ASCII and two integers) in a raw string representation.
-		self.assertEqual(rawOutput[0],'1\x01\x01',msg="Expected '1'\\x01\\x01 ('1'11).")
-		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
+		# Should get '1'11 (ASCII and two 1 integers) = 0x31 0x01 0x01
+		self.assertEqual(hexOutput[0],'0x31:0x01:0x01',msg="Expected 0x31:0x01:0x01.")
+		self.assertEqual(len(hexOutput[0]),14,msg='Expected 14 bytes.')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
-
-		# Verify casting of the received bytes to integers.
-		for i in range(len(rawOutput[0])): # Already asserted it's three bytes. Use it.
-			self.assertTrue(type(rawOutput[0][i])==str,'rawOutput[0][{}] is not string.'.format(i))
-		tempInt=int(rawOutput[0][0]) # Cast the unicode string to integer.
-		self.assertEqual(tempInt,1,msg='tempInt != 1.')
-		tempInt=int.from_bytes(bytes(rawOutput[0][1],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='little',signed=False)
-		self.assertEqual(tempInt,1,msg='tempInt != 1.')
-		tempInt=int.from_bytes(bytes(rawOutput[0][2],'ASCII'), # Cast str to bytes, and bytes to int.
-				byteorder='little',signed=False)
-		self.assertEqual(tempInt,1,msg='tempInt != 1.')
 
 	def testRawGoodByte_0x41(self):
 		""" Send three raw bytes with three different representations of
@@ -182,17 +158,16 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
-		# Should just get 'AAA' in a raw string representation.
-		self.assertEqual(rawOutput[0],'\x41\x41\x41',msg="Expected \\x41\\x41\\x41 ('AAA').")
-		self.assertEqual(rawOutput[0],'AAA',msg="Expected 'AAA' (\x41\x41\x41)).") # Both will work.
-		self.assertEqual(len(rawOutput[0]),3,msg='Expected three bytes.')
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
+		# Should get 0x41 0x41 0x41 - three ASCII codes for 'A'.
+		self.assertEqual(hexOutput[0],'0x41:0x41:0x41',msg="Expected 0x41:0x41:0x41 ('AAA').")
+		self.assertEqual(len(hexOutput[0]),14,msg='Expected 14 bytes.')
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
@@ -209,23 +184,24 @@ class Tests(unittest.TestCase):
 				self.fixture.close()
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
-		# Prepare the expected results - the entire ASCII table in byte format.
-		allASCIIBytes=b''
+		# Prepare the expected results - hex codes of the entire ASCII table.
+		# NOTE - Arduino uses little endian, so be careful with byteorder.
+		expectedAns=''
 		for i in range(0,128): # From 0x00 to 0x7F.
-			allASCIIBytes += i.to_bytes(1,byteorder='little',signed=False)
+			expectedAns += ('0x'+i.to_bytes(1,byteorder='little',signed=False).hex()+':')
+		expectedAns=expectedAns.rstrip(':') # No trailing colon.
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
-		# Should get allASCIIBytes in a raw string representation. Explicitly
-		# cast rawOutput[0] to bytes to be able to compare to allASCIIBytes.
-		self.assertEqual(bytes(rawOutput[0],'ASCII'),allASCIIBytes,msg="Expected {}.".format(allASCIIBytes))
-		self.assertEqual(len(rawOutput[0]),128,msg='Expected 128 bytes.')
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
+		# Should get expectedAns in a hex code representation.
+		self.assertEqual(hexOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(hexOutput[0]),639,msg="Expected 128 characters * (3 digits and 'x' and ':' each) - 1 last colon = 639 characters.")
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
@@ -237,7 +213,7 @@ class Tests(unittest.TestCase):
 		# representations up to 255 - getting them programmatically is a bit of
 		# a pain, so use https://www.rapidtables.com/convert/number/hex-to-ascii.html
 		# They are in range 0x80 to 0xFF, i.e. no longer ASCII but still one byte.
-		expectedAns='\x80\x81\x82\x8a\x8b\x8f\x9f\xa0\xa1\xc8\xf0\xfe\xff'
+		expectedAns='0x80:0x81:0x82:0x8a:0x8b:0x8f:0x9f:0xa0:0xa1:0xc8:0xf0:0xfe:0xff'
 		expectedDec=[128,129,130,138,139,143,159,160,161,200,240,254,255] # Unused here, only in the Arduino.
 
 		self.fixture.write(b'N') # Send the command byte to execute this test case.
@@ -251,17 +227,17 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
-		# Should get expectedAns in a raw string representation.
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
+		# Should get expectedAns in hex code representation.
 		# expectedAns is also a string, so can compare w/o casting.
-		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
-		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(hexOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
@@ -278,23 +254,29 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Prepare the expected results - all the individual bytes.
-		# NOTE - Arduino uses little endian, so be careful with byteorder.
+		# NOTE - Arduino uses little endian, so be careful with byteorder. It
+		#        matters because we convert an int into two bytes in one go,
+		#        not one byte at a time as done in the commsInterface.
 		expectedAns=''
 		for i in range(256,65535,500): # 0x0100 to 0xFFFF.
-			expectedAns += ''.join(chr(x) for x in i.to_bytes(2, byteorder='little', signed=False))
+			# tempStr is a 2-byte hex code, e.g. 0001.
+			tempStr=i.to_bytes(2,byteorder='little',signed=False).hex()
+			# Will read and concatenate one byte at a time.
+			expectedAns += ('0x'+tempStr[:2]+':'+'0x'+tempStr[2:]+':')
+		expectedAns=expectedAns.rstrip(':') # No trailing colon.
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
-		# Should get expectedAns in a raw string representation.
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
+		# Should get expectedAns as a string with hex codes.
 		# expectedAns is also a string, so can compare w/o casting.ng.
-		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
-		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(hexOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
@@ -303,11 +285,9 @@ class Tests(unittest.TestCase):
 		# Below are hex bytes sequences and the corresponding expected results of
 		# the monitor - getting them programmatically is a bit of a pain, so use
 		# https://www.rapidtables.com/convert/number/hex-to-ascii.html
-		expectedAnsParts=['\x80\x81\x82\x80\x00\x82\x80\x82\x00\x00\x80\x82',
-						# '¡'=0xA1=0xa1, both hex (with a and A) and str will work.
-						'\x80\xa0\x00\x82¡\x80\x82\xa1\x00\x00\xA1\x80\x82',
-						# '¯'=0xaf=0xAF, all thee representations will work.
-						'\x00¯\x80\x82\x00\xaf\x00\x00\x00\x00\xaf\x00']
+		expectedAnsParts=['0x80:0x81:0x82:0x80:0x00:0x82:0x80:0x82:0x00:0x00:0x80:0x82:',
+						'0x80:0xa0:0x00:0x82:0xa1:0x80:0x82:0xa1:0x00:0x00:0xa1:0x80:0x82:',
+						'0x00:0xaf:0x80:0x82:0x00:0xaf:0x00:0x00:0x00:0x00:0xaf:0x00']
 		expectedAns=expectedAnsParts[0]+expectedAnsParts[1]+expectedAnsParts[2]
 
 		self.fixture.write(b'Q') # Send the command byte to execute this test case.
@@ -321,17 +301,17 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
 		# Should get expectedAns in a raw string representation.
 		# expectedAns is also a string, so can compare w/o casting.ng.
-		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
-		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(hexOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
@@ -345,7 +325,7 @@ class Tests(unittest.TestCase):
 		# https://docs.python.org/3/library/functions.html#chr
 		# However, SerialMonitor will convert bytes one at a time so cannot exceed
 		# the valid unicode range even if we send a larger integer.
-		expectedAnsParts=['\x10\xFF\xFE','\x10\xFF\xFF','\x11\x00\x00']
+		expectedAnsParts=['0x10:0xff:0xfe:','0x10:0xff:0xff:','0x11:0x00:0x00']
 		expectedAns=expectedAnsParts[0]+expectedAnsParts[1]+expectedAnsParts[2]
 		goodDec=[0x10FFFE,0x10FFFF,0x110000] # Unused here, only in the Arduino.
 
@@ -360,17 +340,17 @@ class Tests(unittest.TestCase):
 				raise BaseException('Getting test data from the Arduino on port {} timed out.'.format(self.fixture.port))
 
 		# Verify the reply to the command byte if no exception has been raised.
-		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
+		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')
 		# Should get a string output.
-		self.assertTrue(type(rawOutput[0])==str,'rawOutput[0] is not string.')
+		self.assertTrue(type(hexOutput[0])==str,'hexOutput[0] is not string.')
 		# Should get expectedAns in a raw string representation.
 		# expectedAns is also a string, so can compare w/o casting.ng.
-		self.assertEqual(rawOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
-		self.assertEqual(len(rawOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
-		# 'raw' option should leave outputBuffer unchanged.
-		self.assertEqual(rawOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
+		self.assertEqual(hexOutput[0],expectedAns,msg="Expected {}.".format(expectedAns))
+		self.assertEqual(len(hexOutput[0]),len(expectedAns),msg='Expected {} bytes.'.format(len(expectedAns)))
+		# 'hex' option should leave outputBuffer unchanged.
+		self.assertEqual(hexOutput[1],'DummyBuff',msg='Expected unchanged DummyBuff.')
 		# Should have no warnings.
-		self.assertEqual(rawOutput[2],{},msg='Expected empty warning dict.')
+		self.assertEqual(hexOutput[2],{},msg='Expected empty warning dict.')
 		# The port should be empty now.
 		self.assertEqual(self.fixture.read(1),b'',msg='Expected empty buffer after reading.')
 
