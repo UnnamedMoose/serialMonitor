@@ -1,0 +1,169 @@
+1) Tests with "raw output". Started running all test cases from the top to the bottom.
+	S - caused the ASCII table to be visible in the log but not in the console. "0" afterwards returned "Arduino reachable" correctly.
+	L - no bytes in the console, log seems OK. "0" afterwards returned "Arduino reachable" correctly
+		in the console. Stalls the log but not the console.
+		--> Sometimes a few bytes are displayed in the console. More bytes make it to the
+		 	console if the read delay is shorter. Consistently stalls the log on the first
+			reception of the test bytes.
+		--> l displays in log and doesn't stall it. Nothing displays in the console,
+			possibly because message starts with 0x00. Works OK in hex outputFormat.
+		--> m works fine, so it cannot be just the sheer number of bytes, which is the
+			common element between S and L tests.
+		--> Normally, the log stalls after the following bytes are displayed:
+				ôèÜÄ¸ ¬|pdXL@ 4"($&(*ø+ì-à/Ô1È3¼5°7¤9dáã
+			Then, after shutdown of the application, the following bytes appear in the log:
+				åxçlé`ëTíHï<ñ0ó$õ÷ùûôüèþ
+
+			// Try to reproduce the log stalling by the use of the bytes that seem to be causing this.
+			This occurs between these two longs:
+			58256 ['\x90', 'ã']
+			58756 ['\x84', 'å']
+		--> 0x90 = 58256 = 'ã' stalls the log but not the console.
+		--> 0x84 = 58756 = 'å' stalls neither but doesn't display in the log. Shows as a square in the console.
+
+	Q - caused the log to stall and display nothing, not even "Arduino reachable" even though
+		the console was OK still.
+		Starting with test case Q (or u, just the unique bytes) doesn't reproduce the error. So the
+		issue must actually have been with test case L, which was executed prior to Q.
+		After all, Q seems to work fine.
+	--------------restart application----------------------
+	s - nothing displayed in the console, log seems OK. "0" afterwards returned "Arduino reachable" correctly.
+
+	Everything else seems to have worked. However, didn't check every single byte by hand.
+
+2) Tests with "hex output":
+	Everything seems to have worked. However, didn't check every single byte by hand
+
+
+
+	256 ['\x00', '\x01']
+	756 ['ô', '\x02']
+	1256 ['è', '\x04']
+	1756 ['Ü', '\x06']
+	2256 ['Ð', '\x08']
+	2756 ['Ä', '\n']
+	3256 ['¸', '\x0c']
+	3756 ['¬', '\x0e']
+	4256 ['\xa0', '\x10']
+	4756 ['\x94', '\x12']
+	5256 ['\x88', '\x14']
+	5756 ['|', '\x16']
+	6256 ['p', '\x18']
+	6756 ['d', '\x1a']
+	7256 ['X', '\x1c']
+	7756 ['L', '\x1e']
+	8256 ['@', ' ']
+	8756 ['4', '"']
+	9256 ['(', '$']
+	9756 ['\x1c', '&']
+	10256 ['\x10', '(']
+	10756 ['\x04', '*']
+	11256 ['ø', '+']
+	11756 ['ì', '-']
+	12256 ['à', '/']
+	12756 ['Ô', '1']
+	13256 ['È', '3']
+	13756 ['¼', '5']
+	14256 ['°', '7']
+	14756 ['¤', '9']
+	15256 ['\x98', ';']
+	15756 ['\x8c', '=']
+	16256 ['\x80', '?']
+	16756 ['t', 'A']
+	17256 ['h', 'C']
+	17756 ['\\', 'E']
+	18256 ['P', 'G']
+	18756 ['D', 'I']
+	19256 ['8', 'K']
+	19756 [',', 'M']
+	20256 [' ', 'O']
+	20756 ['\x14', 'Q']
+	21256 ['\x08', 'S']
+	21756 ['ü', 'T']
+	22256 ['ð', 'V']
+	22756 ['ä', 'X']
+	23256 ['Ø', 'Z']
+	23756 ['Ì', '\\']
+	24256 ['À', '^']
+	24756 ['´', '`']
+	25256 ['¨', 'b']
+	25756 ['\x9c', 'd']
+	26256 ['\x90', 'f']
+	26756 ['\x84', 'h']
+	27256 ['x', 'j']
+	27756 ['l', 'l']
+	28256 ['`', 'n']
+	28756 ['T', 'p']
+	29256 ['H', 'r']
+	29756 ['<', 't']
+	30256 ['0', 'v']
+	30756 ['$', 'x']
+	31256 ['\x18', 'z']
+	31756 ['\x0c', '|']
+	32256 ['\x00', '~']
+	32756 ['ô', '\x7f']
+	33256 ['è', '\x81']
+	33756 ['Ü', '\x83']
+	34256 ['Ð', '\x85']
+	34756 ['Ä', '\x87']
+	35256 ['¸', '\x89']
+	35756 ['¬', '\x8b']
+	36256 ['\xa0', '\x8d']
+	36756 ['\x94', '\x8f']
+	37256 ['\x88', '\x91']
+	37756 ['|', '\x93']
+	38256 ['p', '\x95']
+	38756 ['d', '\x97']
+	39256 ['X', '\x99']
+	39756 ['L', '\x9b']
+	40256 ['@', '\x9d']
+	40756 ['4', '\x9f']
+	41256 ['(', '¡']
+	41756 ['\x1c', '£']
+	42256 ['\x10', '¥']
+	42756 ['\x04', '§']
+	43256 ['ø', '¨']
+	43756 ['ì', 'ª']
+	44256 ['à', '¬']
+	44756 ['Ô', '®']
+	45256 ['È', '°']
+	45756 ['¼', '²']
+	46256 ['°', '´']
+	46756 ['¤', '¶']
+	47256 ['\x98', '¸']
+	47756 ['\x8c', 'º']
+	48256 ['\x80', '¼']
+	48756 ['t', '¾']
+	49256 ['h', 'À']
+	49756 ['\\', 'Â']
+	50256 ['P', 'Ä']
+	50756 ['D', 'Æ']
+	51256 ['8', 'È']
+	51756 [',', 'Ê']
+	52256 [' ', 'Ì']
+	52756 ['\x14', 'Î']
+	53256 ['\x08', 'Ð']
+	53756 ['ü', 'Ñ']
+	54256 ['ð', 'Ó']
+	54756 ['ä', 'Õ']
+	55256 ['Ø', '×']
+	55756 ['Ì', 'Ù']
+	56256 ['À', 'Û']
+	56756 ['´', 'Ý']
+	57256 ['¨', 'ß']
+	57756 ['\x9c', 'á']
+	58256 ['\x90', 'ã']
+	58756 ['\x84', 'å']
+	59256 ['x', 'ç']
+	59756 ['l', 'é']
+	60256 ['`', 'ë']
+	60756 ['T', 'í']
+	61256 ['H', 'ï']
+	61756 ['<', 'ñ']
+	62256 ['0', 'ó']
+	62756 ['$', 'õ']
+	63256 ['\x18', '÷']
+	63756 ['\x0c', 'ù']
+	64256 ['\x00', 'û']
+	64756 ['ô', 'ü']
+	65256 ['è', 'þ']
