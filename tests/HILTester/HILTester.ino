@@ -93,6 +93,21 @@ each byte one at a time formatted in the raw binary representation. */
  	Serial.flush();
 }
 
+void sendUnique(void)
+/* Send the same bytes as in sendSequences but just one unique byte at a time.
+Only used in white/black box testsing, not automated test suite. */
+{
+	Serial.write(0x80);
+	Serial.write(0x81);
+	Serial.write(0x82);
+	Serial.write(0xA0);
+	Serial.write(0xA1);
+	Serial.write(0xAF);
+	Serial.write(0x00);
+	// Wait for the outgoing buffer to be cleared.
+ 	Serial.flush();
+}
+
 void sendLongs(void)
 /* Send two-byte integers from 256 to 65535 inclusive (0x0100 to 0xFFFF). Do it
 in steps of 500 to speed up the test w/o loss of generality and end cases. Send
@@ -100,7 +115,7 @@ each long one at a time formatted in the raw binary representation. */
 {
 	long thisByte = 256; // 0x0100, smallest two-byte int.
 
-	while(thisByte<65535) // Go through all ints until 0xFFFFF.
+	while(thisByte<65535) // Go through all ints until 0xFFFF.
 	{
 		// Print thisByte unaltered, i.e. the raw binary version of the byte.
 		// Do it one byte at a time.
@@ -110,6 +125,7 @@ each long one at a time formatted in the raw binary representation. */
 		// Go on to the next long but in large steps to speed things up.
 		thisByte+=500;
 	}
+	//TODO should also send the end case, 0xFFFF = 65535. Now will finish with 65256.
 }
 
 void sendNonASCII(void)
@@ -304,6 +320,35 @@ void loop()
 				break;
 			case 'e': // Invalid and valid ASCII with '\n' in between.
 				sendInvalidEOLValid();
+				break;
+
+			/*******************************************************************
+			 * The following tests aren't used in any automated test sequences.
+			 * They are only used in black-box testing of the entire application,
+			 * including the GUI.
+			 *******************************************************************/
+			case 'u': // Unique bytes from sendSequences test.
+				sendUnique();
+				break;
+			case 'l': // Two end cases of the long, 2-byte integers.
+				serialSendLong(256); // 0x0100, smallest two-byte int.
+				serialSendLong(65535); // 0xFFFF
+				Serial.flush(); // Wait for the outgoing buffer to be cleared.
+				break;
+			case 'm': // Many bytes sent in one go.
+				for(int i=0;i<131;i++) // Larger than the ASCII table.
+				{
+			  		Serial.write(0x41); // 'A'
+			  		Serial.flush();
+				}
+				break;
+			case 'x': // One of the two bytes that seem to make the log stall
+				Serial.write(0x90); // 58256 = 'ã'.
+				Serial.flush();
+				break;
+			case 'y': // One of the two bytes that seem to make the log stall
+				Serial.write(0x84); // 58756 = 'å'.
+				Serial.flush();
 				break;
 		}
 	}
