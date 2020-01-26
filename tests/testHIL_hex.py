@@ -264,6 +264,7 @@ class Tests(unittest.TestCase):
 			# Will read and concatenate one byte at a time.
 			expectedAns += ('0x'+tempStr[:2]+':'+'0x'+tempStr[2:]+':')
 		expectedAns=expectedAns.rstrip(':') # No trailing colon.
+		expectedAns+=':0xff:0xff' # Last two bytes.
 
 		# Verify the reply to the command byte if no exception has been raised.
 		hexOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','hex')

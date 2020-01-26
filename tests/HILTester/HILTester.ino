@@ -125,7 +125,9 @@ each long one at a time formatted in the raw binary representation. */
 		// Go on to the next long but in large steps to speed things up.
 		thisByte+=500;
 	}
-	//TODO should also send the end case, 0xFFFF = 65535. Now will finish with 65256.
+	// Send the end case, 0xFFFF = 65535. Now will finish with 65256.
+	serialSendLong(65535); // 0xFFFF
+	Serial.flush();
 }
 
 void sendControlLongs(void)

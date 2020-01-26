@@ -282,6 +282,8 @@ class Tests(unittest.TestCase):
 		expectedAns=''
 		for i in range(256,65535,500): # 0x0100 to 0xFFFF.
 			expectedAns += ''.join(chr(x) for x in i.to_bytes(2, byteorder='little', signed=False))
+		i=65535 # Last two bytes.
+		expectedAns += ''.join(chr(x) for x in i.to_bytes(2, byteorder='little', signed=False))
 
 		# Verify the reply to the command byte if no exception has been raised.
 		rawOutput=sm.commsInterface.grabPortOutput(self.fixture,'DummyBuff','raw')
