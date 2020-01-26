@@ -41,7 +41,7 @@ import wx, string
 import os, sys, time
 import serial
 import glob
-import logging
+import logging, unicodedata
 
 # Set the module version consistent with pip freeze. Handle exception if didn't
 # install with pip
@@ -571,8 +571,12 @@ class serialMonitorGuiMainFrame( baseClasses.mainFrame ):
 				# Only print when there is some message to avoid spamming the logs
 				# with empty lines.
                 if len(output) > 0:
-                    self.writeToTextBox(output)
-                    self.logger.info(output)
+                    # Replace control characters with unicode unknown character.
+                    # Otherwise, the log might stall. Never seen this happen in
+                    # the wx text box but just to be safe.
+                    cleanOutput=''.join(ch if unicodedata.category(ch)[0]!='C' else chr(0xFFFD) for ch in output)
+                    self.writeToTextBox(cleanOutput)
+                    self.logger.info(cleanOutput)
 
                 # Log and print (in red) warnings, if there are any.
                 if len(warningSummary) > 0:

@@ -128,6 +128,104 @@ each long one at a time formatted in the raw binary representation. */
 	//TODO should also send the end case, 0xFFFF = 65535. Now will finish with 65256.
 }
 
+void sendControlLongs(void)
+/* Send all C0 and C1 control characters from WikiPedia:
+ https://en.wikipedia.org/wiki/C0_and_C1_control_codes#DCS) interweaved with
+  'normal' ones to make sure the replacement works.
+  Send two bytes at a time as a long integer. */
+{
+	serialSendLong(0x0001);Serial.flush();
+	serialSendLong(0x0203);Serial.flush();
+	serialSendLong(0x0405);Serial.flush();
+	serialSendLong(0x0607);Serial.flush();
+	serialSendLong(0x0809);Serial.flush();
+	serialSendLong(0x0A0B);Serial.flush();
+	serialSendLong(0x0C0D);Serial.flush();
+	serialSendLong(0x0E0F);Serial.flush();
+	serialSendLong(0x1011);Serial.flush();
+	serialSendLong(0x1213);Serial.flush();
+	serialSendLong(0x1415);Serial.flush();
+	serialSendLong(0x1617);Serial.flush();
+	serialSendLong(0x1819);Serial.flush();
+	serialSendLong(0x1A1B);Serial.flush();
+	serialSendLong(0x1C1D);Serial.flush();
+	serialSendLong(0x1E1F);Serial.flush();
+	serialSendLong(0x207F);Serial.flush();
+	serialSendLong(0x0B0C);Serial.flush();
+	serialSendLong(0x0D0E);Serial.flush();
+	serialSendLong(0x0F11);Serial.flush();
+	serialSendLong(0x1213);Serial.flush();
+	serialSendLong(0x1819);Serial.flush();
+	serialSendLong(0x1C1D);Serial.flush();
+	serialSendLong(0x1E1F);Serial.flush();
+	serialSendLong(0x8081);Serial.flush();
+	serialSendLong(0x8283);Serial.flush();
+	serialSendLong(0x8485);Serial.flush();
+	serialSendLong(0x8687);Serial.flush();
+	serialSendLong(0x8889);Serial.flush();
+	serialSendLong(0x8A8B);Serial.flush();
+	serialSendLong(0x8C8D);Serial.flush();
+	serialSendLong(0x8E8F);Serial.flush();
+	serialSendLong(0x9091);Serial.flush();
+	serialSendLong(0x9293);Serial.flush();
+	serialSendLong(0x9495);Serial.flush();
+	serialSendLong(0x9697);Serial.flush();
+	serialSendLong(0x9899);Serial.flush();
+	serialSendLong(0x9A9B);Serial.flush();
+	serialSendLong(0x9C9D);Serial.flush();
+	serialSendLong(0x9E9F);Serial.flush();
+	serialSendLong(0x8788);Serial.flush();
+	serialSendLong(0x898A);Serial.flush();
+	serialSendLong(0x8B8C);Serial.flush();
+	serialSendLong(0x8D8E);Serial.flush();
+	serialSendLong(0x8F90);Serial.flush();
+	serialSendLong(0x9192);Serial.flush();
+	serialSendLong(0x9394);Serial.flush();
+	serialSendLong(0x9596);Serial.flush();
+	serialSendLong(0x9798);Serial.flush();
+	serialSendLong(0x999A);Serial.flush();
+	serialSendLong(0x9B9C);Serial.flush();
+	serialSendLong(0x9D9E);Serial.flush();
+	Serial.write(0x9F);
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendControl(void)
+/* Send all C0 and C1 control characters from WikiPedia:
+ https://en.wikipedia.org/wiki/C0_and_C1_control_codes#DCS) interweaved with
+  'normal' ones to make sure the replacement works.
+  Send each byte at a time. */
+{
+	Serial.write(0x0);Serial.write(0x1);Serial.write(0x2);Serial.write(0x3);
+	Serial.write(0x4);Serial.write(0x5);Serial.write(0x6);Serial.write(0x7);
+	Serial.write(0x8);Serial.write(0x9);Serial.write(0x0A);Serial.write(0x0B);
+	Serial.write(0x0C);Serial.write(0x0D);Serial.write(0x0E);Serial.write(0x0F);
+	Serial.write(0x10);Serial.write(0x11);Serial.write(0x12);Serial.write(0x13);
+	Serial.write(0x14);Serial.write(0x15);Serial.write(0x16);Serial.write(0x17);
+	Serial.write(0x18);Serial.write(0x19);Serial.write(0x1A);Serial.write(0x1B);
+	Serial.write(0x1C);Serial.write(0x1D);Serial.write(0x1E);Serial.write(0x1F);
+	Serial.write(0x20);Serial.write(0x7F);Serial.write(0x0B);Serial.write(0x0C);
+	Serial.write(0x0D);Serial.write(0x0E);Serial.write(0x0F);Serial.write(0x11);
+	Serial.write(0x12);Serial.write(0x13);Serial.write(0x18);Serial.write(0x19);
+	Serial.write(0x1C);Serial.write(0x1D);Serial.write(0x1E);Serial.write(0x1F);
+	Serial.write(0x80);Serial.write(0x81);Serial.write(0x82);Serial.write(0x83);
+	Serial.write(0x84);Serial.write(0x85);Serial.write(0x86);Serial.write(0x87);
+	Serial.write(0x88);Serial.write(0x89);Serial.write(0x8A);Serial.write(0x8B);
+	Serial.write(0x8C);Serial.write(0x8D);Serial.write(0x8E);Serial.write(0x8F);
+	Serial.write(0x90);Serial.write(0x91);Serial.write(0x92);Serial.write(0x93);
+	Serial.write(0x94);Serial.write(0x95);Serial.write(0x96);Serial.write(0x97);
+	Serial.write(0x98);Serial.write(0x99);Serial.write(0x9A);Serial.write(0x9B);
+	Serial.write(0x9C);Serial.write(0x9D);Serial.write(0x9E);Serial.write(0x9F);
+	Serial.write(0x87);Serial.write(0x88);Serial.write(0x89);Serial.write(0x8A);
+	Serial.write(0x8B);Serial.write(0x8C);Serial.write(0x8D);Serial.write(0x8E);
+	Serial.write(0x8F);Serial.write(0x90);Serial.write(0x91);Serial.write(0x92);
+	Serial.write(0x93);Serial.write(0x94);Serial.write(0x95);Serial.write(0x96);
+	Serial.write(0x97);Serial.write(0x98);Serial.write(0x99);Serial.write(0x9A);
+	Serial.write(0x9B);Serial.write(0x9C);Serial.write(0x9D);Serial.write(0x9E);
+	Serial.write(0x9F);
+	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
 void sendNonASCII(void)
 /* Send several non-ASCII bytes (128+, 0x80 to 0xFF, i.e. no longer ASCII but
 still one byte.). This also covers extended ASCII range and unicode Latin script
@@ -350,6 +448,15 @@ void loop()
 				Serial.write(0x84); // 58756 = 'å'.
 				Serial.flush();
 				break;
+			case 'c': // Send all the possible control characters to make sure the replacement works.
+				sendControl();
+				Serial.flush();
+				break;
+			case 'C': // Send all the possible control characters, two at a time to make sure the replacement works.
+				sendControlLongs();
+				break;
+		//TODO Sending each C0 and C1 control byte doesn't seem to reproduce the error
+		//TODO of the 'L' and 'x' test cases?
 		}
 	}
 }
