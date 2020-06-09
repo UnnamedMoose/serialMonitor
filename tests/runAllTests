@@ -50,11 +50,13 @@ fi
 # Only report test errors, not every error during execution (they are handled)
 # or AssertionErrors that cause failures.
 noErrors=$(grep -o 'ERROR:' testing.log | wc -l)
+noErrors2=$(grep -o 'ModuleNotFoundError:' testing.log | wc -l)
 echo "--------------------------------------------------------------"
-echo "$noErrors errors that occurred are:"
+echo "$(($noErrors + $noErrors2)) errors that occurred are:"
 echo "--------------------------------------------------------------"
-if [[ "$noErrors" -gt "0" ]]; then
+if [[ "$(($noErrors + $noErrors2))" -gt "0" ]]; then
 	echo | grep "ERROR:" ./testing.log
+	echo | grep "ModuleNotFoundError:" ./testing.log
 else
 	echo # Add an empty line to make it look pretty if there's nothing else to print.
 fi
@@ -62,5 +64,5 @@ fi
 echo "------------------------------------------------------------------------------"
 echo "TEST SUMMARY ($noTestRun test sets)- reducing order of importance of failures."
 echo "------------------------------------------------------------------------------"
-echo "ERRORS: $noErrors"
+echo "ERRORS: $(($noErrors + $noErrors2))"
 echo "FAILURES: $noFailures"
