@@ -174,7 +174,7 @@ void sendControlLongs(void)
 	serialSendLong(0x9697);Serial.flush();
 	serialSendLong(0x9899);Serial.flush();
 	serialSendLong(0x9A9B);Serial.flush();
-	serialSendLong(0x9C9D);Serial.flush();
+	serialSendLong(0x9D);Serial.flush(); // 0x9C is the terminating byte that unblocks the terminal. Skip it.
 	serialSendLong(0x9E9F);Serial.flush();
 	serialSendLong(0x8788);Serial.flush();
 	serialSendLong(0x898A);Serial.flush();
@@ -186,7 +186,7 @@ void sendControlLongs(void)
 	serialSendLong(0x9596);Serial.flush();
 	serialSendLong(0x9798);Serial.flush();
 	serialSendLong(0x999A);Serial.flush();
-	serialSendLong(0x9B9C);Serial.flush();
+	serialSendLong(0x9B);Serial.flush(); // 0x9C is the terminating byte that unblocks the terminal. Skip it.
 	serialSendLong(0x9D9E);Serial.flush();
 	Serial.write(0x9F);
 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
@@ -195,37 +195,85 @@ void sendControlLongs(void)
 void sendControl(void)
 /* Send all C0 and C1 control characters from WikiPedia:
  https://en.wikipedia.org/wiki/C0_and_C1_control_codes#DCS) interweaved with
-  'normal' ones to make sure the replacement works.
+  'normal' ones and 'A's to make sure the replacement works.
   Send each byte at a time. */
 {
-	Serial.write(0x0);Serial.write(0x1);Serial.write(0x2);Serial.write(0x3);
-	Serial.write(0x4);Serial.write(0x5);Serial.write(0x6);Serial.write(0x7);
-	Serial.write(0x8);Serial.write(0x9);Serial.write(0x0A);Serial.write(0x0B);
-	Serial.write(0x0C);Serial.write(0x0D);Serial.write(0x0E);Serial.write(0x0F);
-	Serial.write(0x10);Serial.write(0x11);Serial.write(0x12);Serial.write(0x13);
-	Serial.write(0x14);Serial.write(0x15);Serial.write(0x16);Serial.write(0x17);
-	Serial.write(0x18);Serial.write(0x19);Serial.write(0x1A);Serial.write(0x1B);
-	Serial.write(0x1C);Serial.write(0x1D);Serial.write(0x1E);Serial.write(0x1F);
-	Serial.write(0x20);Serial.write(0x7F);Serial.write(0x0B);Serial.write(0x0C);
-	Serial.write(0x0D);Serial.write(0x0E);Serial.write(0x0F);Serial.write(0x11);
-	Serial.write(0x12);Serial.write(0x13);Serial.write(0x18);Serial.write(0x19);
-	Serial.write(0x1C);Serial.write(0x1D);Serial.write(0x1E);Serial.write(0x1F);
-	Serial.write(0x80);Serial.write(0x81);Serial.write(0x82);Serial.write(0x83);
-	Serial.write(0x84);Serial.write(0x85);Serial.write(0x86);Serial.write(0x87);
-	Serial.write(0x88);Serial.write(0x89);Serial.write(0x8A);Serial.write(0x8B);
-	Serial.write(0x8C);Serial.write(0x8D);Serial.write(0x8E);Serial.write(0x8F);
-	Serial.write(0x90);Serial.write(0x91);Serial.write(0x92);Serial.write(0x93);
-	Serial.write(0x94);Serial.write(0x95);Serial.write(0x96);Serial.write(0x97);
-	Serial.write(0x98);Serial.write(0x99);Serial.write(0x9A);Serial.write(0x9B);
-	Serial.write(0x9C);Serial.write(0x9D);Serial.write(0x9E);Serial.write(0x9F);
-	Serial.write(0x87);Serial.write(0x88);Serial.write(0x89);Serial.write(0x8A);
-	Serial.write(0x8B);Serial.write(0x8C);Serial.write(0x8D);Serial.write(0x8E);
-	Serial.write(0x8F);Serial.write(0x90);Serial.write(0x91);Serial.write(0x92);
-	Serial.write(0x93);Serial.write(0x94);Serial.write(0x95);Serial.write(0x96);
-	Serial.write(0x97);Serial.write(0x98);Serial.write(0x99);Serial.write(0x9A);
-	Serial.write(0x9B);Serial.write(0x9C);Serial.write(0x9D);Serial.write(0x9E);
-	Serial.write(0x9F);
+	Serial.write(0x0);Serial.write(0x41);Serial.write(0x1);Serial.write(0x41);
+	Serial.write(0x2);Serial.write(0x41);Serial.write(0x3);Serial.write(0x41);
+	Serial.write(0x4);Serial.write(0x41);Serial.write(0x5);Serial.write(0x41);
+	Serial.write(0x6);Serial.write(0x41);Serial.write(0x7);Serial.write(0x41);
+	Serial.write(0x8);Serial.write(0x41);Serial.write(0x9);Serial.write(0x41);
+	Serial.write(0x0A);Serial.write(0x41);Serial.write(0x0B);Serial.write(0x41);
+	Serial.write(0x0C);Serial.write(0x41);Serial.write(0x0D);Serial.write(0x41);
+	Serial.write(0x0E);Serial.write(0x41);Serial.write(0x0F);Serial.write(0x41);
+	Serial.write(0x10);Serial.write(0x41);Serial.write(0x11);Serial.write(0x41);
+	Serial.write(0x12);Serial.write(0x41);Serial.write(0x13);Serial.write(0x41);
+	Serial.write(0x14);Serial.write(0x41);Serial.write(0x15);Serial.write(0x41);
+	Serial.write(0x16);Serial.write(0x41);Serial.write(0x17);Serial.write(0x41);
+	Serial.write(0x18);Serial.write(0x41);Serial.write(0x19);Serial.write(0x41);
+	Serial.write(0x1A);Serial.write(0x41);Serial.write(0x1B);Serial.write(0x41);
+	Serial.write(0x1C);Serial.write(0x41);Serial.write(0x1D);Serial.write(0x41);
+	Serial.write(0x1E);Serial.write(0x41);Serial.write(0x1F);Serial.write(0x41);
+	Serial.write(0x20);Serial.write(0x41);Serial.write(0x7F);Serial.write(0x41);
+	Serial.write(0x0B);Serial.write(0x41);Serial.write(0x0C);Serial.write(0x41);
+	Serial.write(0x0D);Serial.write(0x41);Serial.write(0x0E);Serial.write(0x41);
+	Serial.write(0x0F);Serial.write(0x41);Serial.write(0x11);Serial.write(0x41);
+	Serial.write(0x12);Serial.write(0x41);Serial.write(0x13);Serial.write(0x41);
+	Serial.write(0x18);Serial.write(0x41);Serial.write(0x19);Serial.write(0x41);
+	Serial.write(0x1C);Serial.write(0x41);Serial.write(0x1D);Serial.write(0x41);
+	Serial.write(0x1E);Serial.write(0x41);Serial.write(0x1F);Serial.write(0x41);
+	Serial.write(0x80);Serial.write(0x41);Serial.write(0x81);Serial.write(0x41);
+	Serial.write(0x82);Serial.write(0x41);Serial.write(0x83);Serial.write(0x41);
+	Serial.write(0x84);Serial.write(0x41);Serial.write(0x85);Serial.write(0x41);
+	Serial.write(0x86);Serial.write(0x41);Serial.write(0x87);Serial.write(0x41);
+	Serial.write(0x88);Serial.write(0x41);Serial.write(0x89);Serial.write(0x41);
+	Serial.write(0x8A);Serial.write(0x41);Serial.write(0x8B);Serial.write(0x41);
+	Serial.write(0x8C);Serial.write(0x41);Serial.write(0x8D);Serial.write(0x41);
+	Serial.write(0x8E);Serial.write(0x41);Serial.write(0x8F);Serial.write(0x41);
+	Serial.write(0x90);Serial.write(0x41);Serial.write(0x91);Serial.write(0x41);
+	Serial.write(0x92);Serial.write(0x41);Serial.write(0x93);Serial.write(0x41);
+	Serial.write(0x94);Serial.write(0x41);Serial.write(0x95);Serial.write(0x41);
+	Serial.write(0x96);Serial.write(0x41);Serial.write(0x97);Serial.write(0x41);
+	Serial.write(0x98);Serial.write(0x41);Serial.write(0x99);Serial.write(0x41);
+	Serial.write(0x9A);Serial.write(0x41);Serial.write(0x9B);Serial.write(0x41);
+	Serial.write(0x41);Serial.write(0x9D);Serial.write(0x41); // 0x9C is the terminating byte that unblocks the terminal. Skip it.
+	Serial.write(0x9E);Serial.write(0x41);Serial.write(0x9F);Serial.write(0x41);
+	Serial.write(0x87);Serial.write(0x41);Serial.write(0x88);Serial.write(0x41);
+	Serial.write(0x89);Serial.write(0x41);Serial.write(0x8A);Serial.write(0x41);
+	Serial.write(0x8B);Serial.write(0x41);Serial.write(0x8C);Serial.write(0x41);
+	Serial.write(0x8D);Serial.write(0x41);Serial.write(0x8E);Serial.write(0x41);
+	Serial.write(0x8F);Serial.write(0x41);Serial.write(0x90);Serial.write(0x41);
+	Serial.write(0x91);Serial.write(0x41);Serial.write(0x92);Serial.write(0x41);
+	Serial.write(0x93);Serial.write(0x41);Serial.write(0x94);Serial.write(0x41);
+	Serial.write(0x95);Serial.write(0x41);Serial.write(0x96);Serial.write(0x41);
+	Serial.write(0x97);Serial.write(0x41);Serial.write(0x98);Serial.write(0x41);
+	Serial.write(0x99);Serial.write(0x41);Serial.write(0x9A);Serial.write(0x41);
+	Serial.write(0x9B);Serial.write(0x41);Serial.write(0x41); // 0x9C is the terminating byte that unblocks the terminal. Skip it.
+	Serial.write(0x9D);Serial.write(0x41);Serial.write(0x9E);Serial.write(0x41);
+	Serial.write(0x9F);Serial.write(0x41);
 	Serial.flush(); // Wait for the outgoing buffer to be cleared.
+}
+
+void sendAsAndControl(void)
+/* Send 10 'A' characters, problematic 0x90 control byte, and 10 more 'A's. */
+{
+	for(int i=0; i<10; i++)
+	{
+		Serial.write(0x41); // ASCII for 'A'.
+	}
+	Serial.write(0x90); // 58256 = 'ã'.
+	for(int i=0; i<10; i++)
+	{
+		Serial.write(0x41); // ASCII for 'A'.
+	}
+	Serial.flush();
+}
+
+void sendTerminatingByte(void)
+/* Send 0x9C, which terminates the control byte sequences and unblock the terminal. */
+{
+	Serial.write(0x9C);
+	Serial.flush();
 }
 
 void sendNonASCII(void)
@@ -442,23 +490,35 @@ void loop()
 			  		Serial.flush();
 				}
 				break;
-			case 'x': // One of the two bytes that seem to make the log stall
+			case 'x': // One of the two bytes that make the log stall. It's one
+				// of the control bytes that is also sent in C0 and C1 test cases.
 				Serial.write(0x90); // 58256 = 'ã'.
 				Serial.flush();
 				break;
-			case 'y': // One of the two bytes that seem to make the log stall
+			case 'X': // Similar to 'x' but sends 10 'A' before and after 0x90
+				// in order to clearly show where the log stalls.
+				sendAsAndControl();
+				break;
+			case 'y': // One of the two problematic control bytes, which has
+			 	// turned out not to make the log stall.
 				Serial.write(0x84); // 58756 = 'å'.
 				Serial.flush();
 				break;
-			case 'c': // Send all the possible control characters to make sure the replacement works.
+			case 'c': // Send all the possible control characters interweaved with
+				// 'A' to make sure the replacement works. Do not send the
+				// terminating byte 0x9C, however, to stall the log.
 				sendControl();
 				Serial.flush();
 				break;
-			case 'C': // Send all the possible control characters, two at a time to make sure the replacement works.
+			case 'C': // Send all the possible control characters, two at a time
+				// to make sure the replacement works.Do not send the
+				// terminating byte 0x9C, however, to stall the log.
 				sendControlLongs();
 				break;
-		//TODO Sending each C0 and C1 control byte doesn't seem to reproduce the error
-		//TODO of the 'L' and 'x' test cases?
+			case 't': // Send command terminating byte 0x9C to unblock the log
+				// after test cases c, C, x, X, and L.
+				sendTerminatingByte();
+				break;
 		}
 	}
 }
