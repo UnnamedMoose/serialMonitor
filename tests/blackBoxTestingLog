@@ -1,5 +1,6 @@
 1) Tests with "raw output". Started running all test cases from the top to the bottom.
 	S - caused the ASCII table to be visible in the log but not in the console. "0" afterwards returned "Arduino reachable" correctly.
+		--> Setting the read delay to 10 ms seems to fix the problem.
 	L - no bytes in the console, log seems OK. "0" afterwards returned "Arduino reachable" correctly
 		in the console. Stalls the log but not the console.
 		--> Sometimes a few bytes are displayed in the console. More bytes make it to the
@@ -12,14 +13,15 @@
 		--> Normally, the log stalls after the following bytes are displayed:
 				ôèÜÄ¸ ¬|pdXL@ 4"($&(*ø+ì-à/Ô1È3¼5°7¤9dáã
 			Then, after shutdown of the application, the following bytes appear in the log:
-				åxçlé`ëTíHï<ñ0ó$õ÷ùûôüèþ
+				åxçlé`ëTíHï<ñ0ó$õ÷ùûôüèþ7
+		--> Running test case 's' after 'L' unblocks the log.
 
 			// Try to reproduce the log stalling by the use of the bytes that seem to be causing this.
 			This occurs between these two longs:
 			58256 ['\x90', 'ã']
 			58756 ['\x84', 'å']
-		--> 0x90 = 58256 = 'ã' stalls the log but not the console.
-		--> 0x84 = 58756 = 'å' stalls neither but doesn't display in the log. Shows as a square in the console.
+		--> TC 'x': 0x90 = 58256 = 'ã' stalls the log but not the console.
+		--> TC 'y': 0x84 = 58756 = 'å' stalls neither but doesn't display in the log. Shows as a square in the console.
 
 	Q - caused the log to stall and display nothing, not even "Arduino reachable" even though
 		the console was OK still.
@@ -28,6 +30,9 @@
 		After all, Q seems to work fine.
 	--------------restart application----------------------
 	s - nothing displayed in the console, log seems OK. "0" afterwards returned "Arduino reachable" correctly.
+		--> Setting the read delay to 10 ms seems to fix the problem.
+	--------------restart application----------------------
+	c, C - both seem to work fine, don't stall anything.
 
 	Everything else seems to have worked. However, didn't check every single byte by hand.
 
